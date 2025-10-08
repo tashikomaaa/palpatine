@@ -22,6 +22,7 @@ Palpatine is a terminal-based fleet manager written in Bash. It provides a small
     - [CLI mode (non-interactive)](#cli-mode-non-interactive)
     - [Interactive menu](#interactive-menu)
     - [Focus mode](#focus-mode)
+    - [Plugins](#plugins)
   - [Scan JSON output format](#scan-json-output-format)
   - [Security \& best practices](#security--best-practices)
   - [Troubleshooting (common issues)](#troubleshooting-common-issues)
@@ -82,7 +83,9 @@ palpatine/                # repo root
     ├── core.sh          # core helpers, SSH wrapper, server loading
     ├── ui.sh            # UI + i18n helpers
     ├── actions.sh       # status/scan, run, reboot, shutdown
-    └── focus.sh         # focus mode & server selection helpers
+    ├── focus.sh         # focus mode & server selection helpers
+    ├── plugins.sh       # plugin registry + loader
+    └── plugins/         # optional plugins (auto-loaded)
 ~/.palpatine.conf        # optional per-user config (not in repo)
 ```
 
@@ -186,6 +189,8 @@ Launch `./palpatine` without args. The main menu offers:
 * Reboot the fleet
 * Shutdown the fleet
 * Focus on a server for per-host actions
+* Open the plugin bay (if plugins are installed)
+* Enjoy a responsive neon header that highlights the active configuration with icons and adaptive dividers
 
 ### Focus mode
 
@@ -195,6 +200,17 @@ Choose a server and you'll have options:
 * run a custom command
 * reboot / shutdown
 * open an interactive SSH shell
+
+### Plugins
+
+Drop Bash scripts into `lib/plugins/` and call `register_plugin "id" "Label" handler_fn`. Palpatine loads them automatically at startup and surfaces them under the **Plugins** menu item. Each plugin receives access to the shared helpers (`run_ssh_cmd`, `draw_header`, translations via `L`, etc.), so you can build custom workflows without touching the core menu.
+
+The repository ships with two examples:
+
+* `backup.sh` — run fleet-wide `tar` backups of `/etc` or `/var/www`.
+* `monitoring.sh` — stream uptime, disk, and memory stats across the fleet.
+
+Document your plugin labels with `L 'plugin.<name>.label'` if you want multilingual support.
 
 ---
 
@@ -214,7 +230,8 @@ Output is a single JSON array — each element is an object per host:
     "ping": "ok",
     "ssh": "ok",
     "ssh_output": "up 2 days,  3:05",
-    "scanned_at": "2025-10-08T15:30:00+02:00"
+    "ssh_exit_code": 0,
+    "scanned_at": "2025-10-08T15:30:00Z"
   }
 ]
 ```
@@ -223,8 +240,9 @@ Field meanings:
 
 * `host`: the host string used (user@host or host).
 * `ping`: `"ok"` or `"failed"`.
-* `ssh`: one of `"ok"`, `"auth_failed"`, `"failed_no_output"`, `"not_attempted"`, or `"skipped"`.
+* `ssh`: one of `"ok"`, `"auth_failed"`, `"failed"`, `"failed_no_output"`, `"not_attempted"`, or `"skipped"`.
 * `ssh_output`: captured stdout/stderr from `uptime -p` (truncated if long).
+* `ssh_exit_code`: numeric exit status reported by the SSH command (`null` if the command was skipped).
 * `scanned_at`: ISO-8601 timestamp of the scan for that host.
 
 You can easily pipe the file into `jq` for queries:
@@ -287,15 +305,27 @@ jq '.[] | {host, ping, ssh}' logs/scans/scan-20251008_153000.json
 Palpatine aims to be simple and auditable. If you want to contribute:
 
 1. Fork the repo.
-2. Add a clear commit message and provide tests or manual test steps.
+2. Add a clear commit message and provide tests or manual test steps (run `./tests/run.sh`).
 3. Open a PR with explanation and rationale.
 
 Suggested improvements:
 
-* plugin system (planned)
-* better i18n with locale files
+* additional built-in plugins (backups, observability, remediation)
+* alternate visual themes (light mode, high contrast)
 * optional output formats: CSV, JSONL, Prometheus metrics
 * richer interactive UI (fzf integration or `dialog`)
+
+---
+
+## Testing
+
+Automated checks live in `tests/`. Run everything locally with:
+
+```bash
+./tests/run.sh
+```
+
+The script exercises the plugin registry/loader and ensures bundled plugins register correctly. Pair it with `bash -n lib/*.sh lib/plugins/*.sh` for quick syntax validation.
 
 ---
 

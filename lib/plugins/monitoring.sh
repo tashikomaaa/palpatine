@@ -1,10 +1,11 @@
 plugin_monitoring_menu(){
   draw_header
-  draw_block_top; draw_center "🛰️ Monitoring Impérial"; draw_block_bot
+  draw_section_title "$(L 'plugin.monitoring.title')"
   for s in "${SERVERS[@]}"; do
-    draw_line; echo " 📡 $s"
+    draw_line
+    echo " 📡 $s"
     run_ssh_cmd "$s" "uptime && df -h / && free -m | grep Mem"
   done
 }
 
-register_plugin "monitoring" "Monitoring Impérial" plugin_monitoring_menu
+register_plugin "monitoring" "$(L 'plugin.monitoring.label')" plugin_monitoring_menu

@@ -73,35 +73,45 @@ action_status(){
         local ping_stat="failed"
         local ssh_stat="not_attempted"
         local ssh_output=""
+        local ssh_exit='null'
         
         # Ping
-        if ping -c 1 -W 2 "$hostpart" &>/dev/null; then
+        if ping_host "$hostpart"; then
             ping_stat="ok"
             echo "   $(L 'status.ping_ok' 2>/dev/null || echo 'Ping: OK')"
             # Non-interactive SSH attempt for uptime
-            ssh_output="$(ssh "${SSH_OPTS[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || true
-            
-            if echo "$ssh_output" | grep -qiE "permission denied|authentication failed|no authentication methods available"; then
-                ssh_stat="auth_failed"
-                # If interactive retry is enabled and TTY present, offer interactive retry
-                if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
-                    read -rp $'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $s. Retry interactively? [o/N]: "$COL_RESET ans
-                    if [[ "$ans" =~ ^[oO]$ ]]; then
-                        # interactive retry using SSH_OPTS_INTERACTIVE
-                        ssh_output="$(ssh "${SSH_OPTS_INTERACTIVE[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || true
-                        if echo "$ssh_output" | grep -qiE "permission denied|authentication failed|no authentication methods available"; then
-                            ssh_stat="auth_failed"
+            ssh_exit=0
+            ssh_output="$(ssh "${SSH_OPTS[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || ssh_exit=$?
+
+            if (( ssh_exit == 0 )); then
+                ssh_stat="ok"
+            else
+                if echo "$ssh_output" | grep -qiE "permission denied|authentication failed|no authentication methods available"; then
+                    ssh_stat="auth_failed"
+                    # If interactive retry is enabled and TTY present, offer interactive retry
+                    if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
+                        local prompt_text ans
+                        prompt_text="$(printf '%s %s. %s' "$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for')" "$s" "$(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:')")"
+                        prompt_read_text "$prompt_text" ans "$COL_INFO" || ans=""
+                        if [[ "$ans" =~ ^[oOyY]$ ]]; then
+                            # interactive retry using SSH_OPTS_INTERACTIVE
+                            ssh_output="$(ssh "${SSH_OPTS_INTERACTIVE[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || ssh_exit=$?
+                            if (( ssh_exit == 0 )); then
+                                ssh_stat="ok"
+                            elif echo "$ssh_output" | grep -qiE "permission denied|authentication failed|no authentication methods available"; then
+                                ssh_stat="auth_failed"
                             elif [[ -z "${ssh_output//[$'\t\r\n ']/}" ]]; then
-                            ssh_stat="failed_no_output"
-                        else
-                            ssh_stat="ok"
+                                ssh_stat="failed_no_output"
+                            else
+                                ssh_stat="failed"
+                            fi
                         fi
                     fi
-                fi
                 elif [[ -z "${ssh_output//[$'\t\r\n ']/}" ]]; then
-                ssh_stat="failed_no_output"
-            else
-                ssh_stat="ok"
+                    ssh_stat="failed_no_output"
+                else
+                    ssh_stat="failed"
+                fi
             fi
         else
             ping_stat="failed"
@@ -124,29 +134,31 @@ action_status(){
                 ssh_output="${ssh_output:0:$maxlen}\n...[truncated]"
             fi
             
-            local j_host j_ping j_ssh j_output
+            local j_host j_ping j_ssh j_output j_exit
             j_host=$(_json_safe "$s")
             j_ping=$(_json_safe "$ping_stat")
             j_ssh=$(_json_safe "$ssh_stat")
             j_output=$(_json_safe "$ssh_output")
-            
+            j_exit=$(_json_safe "${ssh_exit:-0}")
+
             if $first; then
                 first=false
             else
                 printf '%s\n' "," >> "$scan_file"
             fi
-            
-      cat >> "$scan_file" <<EOF
-  {
-    "host": "$j_host",
-    "ping": "$j_ping",
-    "ssh": "$j_ssh",
-    "ssh_output": "$j_output",
-    "scanned_at": "$(date --iso-8601=seconds)"
-  }
-EOF
+
+            {
+                printf '  {\n' >> "$scan_file"
+                printf '    "host": "%s",\n' "$j_host" >> "$scan_file"
+                printf '    "ping": "%s",\n' "$j_ping" >> "$scan_file"
+                printf '    "ssh": "%s",\n' "$j_ssh" >> "$scan_file"
+                printf '    "ssh_output": "%s",\n' "$j_output" >> "$scan_file"
+                printf '    "ssh_exit_code": %s,\n' "$j_exit" >> "$scan_file"
+                printf '    "scanned_at": "%s"\n' "$(iso_timestamp)" >> "$scan_file"
+                printf '  }\n' >> "$scan_file"
+            }
         fi
-        
+
     done
     
     # restore strict mode
@@ -167,7 +179,7 @@ EOF
 # action_run_command: parallel command runner across fleet
 # ---------------------------
 action_run_command(){
-    read -rp $'\e[94m'"$(L 'menu.run' 2>/dev/null || echo 'Order to run:')" $'\e[0m ' cmdline
+    prompt_read_key 'focus.prompt.command' cmdline 'Order to run:' "$COL_INFO" || cmdline=""
     [[ -z "${cmdline:-}" ]] && { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
     empire "$(L 'empire.deploy' 2>/dev/null || echo 'Deploying:') ${COL_MENU}$cmdline${COL_RESET}"
     summary_init
@@ -178,7 +190,7 @@ action_run_command(){
         (
             draw_line
             printf ' 🛰️  System: %s\n' "$s"
-            if ping -c 1 -W 2 "${s#*@}" &>/dev/null; then
+            if ping_host "${s#*@}"; then
                 run_ssh_cmd "$s" "$cmdline" && summary_update ok || summary_update fail
             else
                 failure "   $(L 'status.ping_fail' 2>/dev/null || echo 'Ping failed for') $s"
@@ -208,12 +220,12 @@ action_reboot_or_shutdown(){
     
     # Build the confirmation prompt in a variable to avoid complex inline quoting
     prompt_text="$(L 'prompt.confirm' 2>/dev/null || echo 'Confirm? Type O to confirm:')"
-    
-    # Ask user for confirmation (colored). We put the coloring outside substitution to avoid quoting issues.
-    read -rp $'\e[94m'"${prompt_text} "$COL_RESET c
-    
+
+    local c
+    prompt_read_text "$prompt_text" c "$COL_INFO" || c=""
+
     # If user didn't confirm, abort
-    [[ "${c:-}" =~ ^[oO]$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+    [[ "${c:-}" =~ ^([oO]|[yY])$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
     
     empire "Order: $verb"
     summary_init
@@ -227,7 +239,7 @@ action_reboot_or_shutdown(){
         (
             draw_line
             printf ' 🛰️  System: %s\n' "$s"
-            if ping -c 1 -W 2 "${s#*@}" &>/dev/null; then
+            if ping_host "${s#*@}"; then
                 if [[ "$op" == "reboot" ]]; then
                     run_ssh_cmd "$s" "sudo /sbin/shutdown -r now" && summary_update ok || summary_update fail
                 else

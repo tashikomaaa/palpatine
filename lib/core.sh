@@ -44,14 +44,20 @@ summary_update(){
 }
 summary_print(){
   draw_line
-  echo -e " 🧾  $(L 'cfg_active' 2>/dev/null || echo 'Summary:')"
-  echo -e "   ${COL_OK}✅ OK:${COL_RESET} $OK    ${COL_WARN}⚠️ Errors:${COL_RESET} $FAIL    ${COL_ERR}❌ Down:${COL_RESET} $DOWN"
+  printf ' 🧾  %s\n' "$(L 'cfg_active' 2>/dev/null || echo 'Summary:')"
+  printf '   %b✅ OK:%b %d    %b⚠️ Errors:%b %d    %b❌ Down:%b %d\n' \
+    "$COL_OK" "$COL_RESET" "$OK" \
+    "$COL_WARN" "$COL_RESET" "$FAIL" \
+    "$COL_ERR" "$COL_RESET" "$DOWN"
   draw_line
-  echo -e "  📜  Log: $LOG_DIR"
+  printf '  📜  Log: %s\n' "$LOG_DIR"
 }
 
 # Pause helper
-pause(){ read -rp $'\e[90m'"$(L 'prompt.enter' 2>/dev/null || echo '[Enter to continue]')"$'\e[0m' _ || true; }
+pause(){
+  local _
+  prompt_read_key 'prompt.enter' _ '[Press Enter to continue]' "$COL_SUB" '' || true
+}
 
 # ----------------------------
 # Server management helpers
@@ -136,8 +142,10 @@ run_ssh_cmd(){
     # Authentication error
     if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
       # prompt user to retry interactively for this host
-      read -rp $'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $host. $(L 'prompt.confirm' 2>/dev/null || echo 'Retry interactively? [o/N]:') "$COL_RESET ans
-      if [[ "$ans" =~ ^[oO]$ ]]; then
+      local prompt_text ans
+      prompt_text="$(printf '%s %s. %s' "$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for')" "$host" "$(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:')")"
+      prompt_read_text "$prompt_text" ans "$COL_INFO" || ans=""
+      if [[ "$ans" =~ ^[oOyY]$ ]]; then
         # interactive retry using interactive SSH options
         ssh "${SSH_OPTS_INTERACTIVE[@]}" "$host" -- "$cmd"
         return $?
@@ -173,3 +181,34 @@ open_interactive_ssh(){
   empire "Opening interactive SSH to $host (Ctrl+D or 'exit' to return)"
   ssh "${SSH_OPTS_INTERACTIVE[@]}" "$host"
 }
+# Portable ISO-8601 timestamp helper (prefers GNU date, falls back to POSIX UTC)
+iso_timestamp(){
+  local ts
+  if ts=$(date --iso-8601=seconds 2>/dev/null); then
+    printf '%s\n' "$ts"
+  else
+    date -u "+%Y-%m-%dT%H:%M:%SZ"
+  fi
+}
+
+# Cross-platform ping helper. Tries GNU-style timeout first, then falls back.
+ping_host(){
+  local target="$1"
+
+  if command -v timeout >/dev/null 2>&1; then
+    if timeout 3 ping -c 1 "$target" &>/dev/null; then
+      return 0
+    fi
+  fi
+
+  if ping -c 1 -W 2 "$target" &>/dev/null; then
+    return 0
+  fi
+
+  if ping -c 1 "$target" &>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
