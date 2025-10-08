@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
-# install.sh - install Palpatine as a system-wide command
+# install.sh - install Palpatine as a system-wide command with friendly prompts
 
 set -euo pipefail
 
 usage(){
-  cat <<USAGE
-Usage: $0 [--prefix <path>] [--force]
+  cat <<'USAGE'
+Usage: ./install.sh [--prefix <path>] [--force] [--assume-yes]
 
-Installs Palpatine into the specified prefix (default: /usr/local).
-Copies the repository into <prefix>/share/palpatine and symlinks the
-`palpatine` launcher into <prefix>/bin/palpatine.
+Installs Palpatine so it can be launched globally. Copies the current
+repository into <prefix>/share/palpatine (default: /usr/local/share/palpatine)
+and creates/updates the launcher symlink at <prefix>/bin/palpatine.
 
 Options:
-  --prefix <path>  Installation prefix (default: /usr/local)
-  --force          Overwrite an existing installation without prompting
-  -h, --help       Show this help message
+  --prefix <path>   Installation prefix (default: /usr/local)
+  --force           Overwrite an existing installation without prompting
+  --assume-yes, -y  Skip interactive prompts (use defaults)
+  -h, --help        Show this help message
 USAGE
 }
 
 PREFIX="/usr/local"
 FORCE=false
+ASSUME_YES=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -29,6 +31,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --force)
       FORCE=true
+      ;;
+    --assume-yes|--yes|-y)
+      ASSUME_YES=true
       ;;
     -h|--help)
       usage
@@ -45,29 +50,57 @@ while [[ $# -gt 0 ]]; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ "$ASSUME_YES" != true ]]; then
+  read -rp "Installation prefix [$PREFIX]: " answer_prefix
+  if [[ -n "${answer_prefix//[[:space:]]/}" ]]; then
+    PREFIX="$answer_prefix"
+  fi
+fi
+
 INSTALL_ROOT="$PREFIX/share/palpatine"
 BIN_DIR="$PREFIX/bin"
 TARGET="$BIN_DIR/palpatine"
+SERVER_FILE="$INSTALL_ROOT/servers.txt"
 
-if [[ ! -d "$BIN_DIR" ]]; then
-  echo "Creating $BIN_DIR" >&2
-  mkdir -p "$BIN_DIR"
-fi
+progress(){
+  local msg="$1"
+  printf '\r[ .... ] %s' "$msg"
+}
 
-if [[ -d "$INSTALL_ROOT" ]]; then
-  if [[ "$FORCE" != true ]]; then
-    echo "Existing installation detected in $INSTALL_ROOT" >&2
-    echo "Re-run with --force to overwrite." >&2
-    exit 1
+progress_done(){
+  local msg="$1"
+  printf '\r[ #### ] %s\n' "$msg"
+}
+
+confirm(){
+  local prompt="$1"
+  if [[ "$ASSUME_YES" == true ]]; then
+    return 0
   fi
-  echo "Cleaning existing installation at $INSTALL_ROOT" >&2
+  read -rp "$prompt" reply
+  [[ "$reply" =~ ^[yY]$ ]]
+}
+
+progress "Creating directories"
+mkdir -p "$BIN_DIR"
+mkdir -p "$INSTALL_ROOT"
+progress_done "Directories ready"
+
+if [[ -d "$INSTALL_ROOT" && -n $(ls -A "$INSTALL_ROOT" 2>/dev/null) ]]; then
+  if [[ "$FORCE" != true ]]; then
+    if ! confirm "Existing install detected at $INSTALL_ROOT. Overwrite? [y/N]: "; then
+      echo "Aborting installation." >&2
+      exit 1
+    fi
+  fi
+  progress "Removing old installation"
   rm -rf "$INSTALL_ROOT"
+  mkdir -p "$INSTALL_ROOT"
+  progress_done "Old installation removed"
 fi
 
-echo "Copying files to $INSTALL_ROOT" >&2
-mkdir -p "$INSTALL_ROOT"
-
-# Use rsync when available for efficient copying
+progress "Copying files"
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete \
     --exclude '.git' \
@@ -77,26 +110,54 @@ if command -v rsync >/dev/null 2>&1; then
 else
   (cd "$SCRIPT_DIR" && tar --exclude='.git' --exclude='.github' --exclude='logs' -cf - .) | (cd "$INSTALL_ROOT" && tar -xf -)
 fi
+progress_done "Files copied to $INSTALL_ROOT"
 
 chmod +x "$INSTALL_ROOT/palpatine"
 
 if [[ -L "$TARGET" || -f "$TARGET" ]]; then
-  if [[ "$FORCE" == true ]]; then
-    rm -f "$TARGET"
-  else
-    echo "Binary already exists at $TARGET" >&2
-    echo "Re-run with --force to replace the symlink." >&2
-    exit 1
+  if [[ "$FORCE" != true && "$ASSUME_YES" != true ]]; then
+    if ! confirm "A launcher already exists at $TARGET. Replace it? [y/N]: "; then
+      echo "Launcher left untouched." >&2
+      exit 1
+    fi
+  fi
+  rm -f "$TARGET"
+fi
+
+progress "Linking launcher"
+ln -s "$INSTALL_ROOT/palpatine" "$TARGET"
+progress_done "Launcher linked at $TARGET"
+
+if [[ ! -f "$SERVER_FILE" ]]; then
+  cat <<'TEMPLATE' > "$SERVER_FILE"
+# Palpatine servers list
+# Add servers as one host per line, e.g.:
+# root@192.168.1.10
+TEMPLATE
+fi
+
+NEW_SERVER_ADDED=false
+if [[ "$ASSUME_YES" != true ]]; then
+  echo ""
+  if confirm "Would you like to add a server to servers.txt now? [y/N]: "; then
+    read -rp "Enter server (e.g. user@host): " server_entry
+    if [[ -n "${server_entry//[[:space:]]/}" ]]; then
+      printf '%s\n' "$server_entry" >> "$SERVER_FILE"
+      NEW_SERVER_ADDED=true
+    fi
   fi
 fi
 
-echo "Linking $TARGET" >&2
-ln -s "$INSTALL_ROOT/palpatine" "$TARGET"
-
+echo ""
 cat <<SUMMARY
-Palpatine installed successfully.
+Palpatine installed successfully!
   Install root : $INSTALL_ROOT
   Binary link  : $TARGET
-
-Add $PREFIX/bin to your PATH if it is not already.
+  Servers file : $SERVER_FILE
 SUMMARY
+
+if [[ "$NEW_SERVER_ADDED" == true ]]; then
+  echo "Added your server entry to servers.txt."
+fi
+
+echo "Remember to keep $PREFIX/bin in your PATH."
