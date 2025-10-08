@@ -151,7 +151,7 @@ SCAN_INTERACTIVE_RETRY=true
 * `SSH_USER` — default SSH username used for bare hostnames.
 * `MAX_JOBS` — maximum parallel SSH jobs (concurrency).
 * `SSH_TIMEOUT` — seconds for `ConnectTimeout` in SSH options.
-* `UI_LANG` — UI language: `fr` or `en`.
+* `UI_LANG` — UI language: `en`, `fr`, `de`, `es`, `pt`, `it`, `ru`, `uk`, `pl`, `ja`, `ko`, `zh` (aliases such as `pt-br` or `zh-cn` are also accepted).
 * `DRY_RUN` — if `true`, no SSH commands will be executed (useful for testing).
 * `SCAN_OUTPUT_JSON` — `true` / `false`; controls whether `action_status` writes JSON file.
 * `SCAN_OUTPUT_DIR` — directory to write scan files (if not set, defaults to `./logs/scans`).
