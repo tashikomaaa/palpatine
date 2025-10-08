@@ -196,7 +196,7 @@ Launch `./palpatine` without args. The main menu offers:
 * Shutdown the fleet
 * Focus on a server for per-host actions
 * Open the plugin bay (if plugins are installed)
-* Add or remove entries from the active servers list
+* Add or remove entries from the active servers list (removal accepts either the hostname or its menu number)
 
 ### Focus mode
 

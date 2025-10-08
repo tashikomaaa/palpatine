@@ -97,7 +97,7 @@ L(){
         prompt.confirm) echo "Confirm? Type O to confirm:" ;;
         prompt.retry_interactive) echo "Réessayer en interactif ? [o/N]:" ;;
         prompt.add_server) echo "Serveur à ajouter (user@hôte) :" ;;
-        prompt.remove_server) echo "Serveur à supprimer :" ;;
+        prompt.remove_server) echo "Serveur à supprimer (numéro ou hôte) :" ;;
         prompt.password_q) echo "Password required for" ;;
         empire.scan) echo "Scanning the fleet..." ;;
         empire.deploy) echo "Deploying the order:" ;;
@@ -160,7 +160,7 @@ L(){
         prompt.confirm) echo "Confirm? Type Y to confirm:" ;;
         prompt.retry_interactive) echo "Retry interactively? [y/N]:" ;;
         prompt.add_server) echo "Server to add (user@host):" ;;
-        prompt.remove_server) echo "Server to remove:" ;;
+        prompt.remove_server) echo "Server to remove (number or host):" ;;
         prompt.password_q) echo "Password required for" ;;
         empire.scan) echo "Scanning the fleet..." ;;
         empire.deploy) echo "Deploying the order:" ;;

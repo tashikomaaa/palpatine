@@ -78,14 +78,43 @@ prompt_add_server(){
 }
 
 prompt_remove_server(){
-  local input prompt
-  prompt=$'\e[94m'"$(L 'prompt.remove_server' 2>/dev/null || echo 'Server to remove:') "
+  local input prompt target idx
+
+  if (( ${#SERVERS[@]} == 0 )); then
+    alert "$(L 'msg.no_servers' 2>/dev/null || echo 'No servers found.')"
+    return
+  fi
+
+  draw_line
+  echo -e " ${COL_MENU}$(L 'menu.remove_server' 2>/dev/null || echo 'Remove a server')${COL_RESET}"
+  local i=1
+  for srv in "${SERVERS[@]}"; do
+    printf '  [%d] %s\n' "$i" "$srv"
+    ((i++))
+  done
+  draw_line
+
+  prompt=$'\e[94m'"$(L 'prompt.remove_server' 2>/dev/null || echo 'Server to remove (number or host):') "
   read -rp "${prompt}${COL_RESET}" input
-  if [[ -z "${input//[[:space:]]/}" ]]; then
+  input="${input//[[:space:]]/}"
+  if [[ -z "$input" ]]; then
     alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"
     return
   fi
-  if remove_server_entry "$input"; then
+
+  if [[ "$input" =~ ^[0-9]+$ ]]; then
+    idx=$input
+    if (( idx >= 1 && idx <= ${#SERVERS[@]} )); then
+      target="${SERVERS[$((idx-1))]}"
+    else
+      alert "$(L 'alert.invalid' 2>/dev/null || echo 'Invalid choice.')"
+      return
+    fi
+  else
+    target="$input"
+  fi
+
+  if remove_server_entry "$target"; then
     load_servers
   fi
 }
