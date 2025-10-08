@@ -1,0 +1,8 @@
+# Ignorer tous les fichiers servers*.txt
+servers*.txt
+
+# Mais garder l'exemple
+!servers-exemple.txt
+
+# Ignorer les fichiers de logs et scans
+logs/

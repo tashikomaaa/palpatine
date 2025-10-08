@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+# palpatine - main launcher
+# v6 - loads config, sources lib/*.sh and runs the TUI or CLI actions.
+#
+# All comments in this repo are in English for open-source usage.
+
+set -euo pipefail
+IFS=$'\n\t'
+
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$BASE_DIR/lib"
+
+# ----------------------------
+# Load configuration files (if any)
+# Precedence: /etc/palpatine.conf -> $HOME/.palpatine.conf -> $PWD/.palpatine.conf
+# These files should set variables like GROUP, SSH_USER, MAX_JOBS, SSH_TIMEOUT, UI_LANG, DRY_RUN, etc.
+# ----------------------------
+CONFIG_PATHS=(
+  "/etc/palpatine.conf"
+  "$HOME/.palpatine.conf"
+  "$PWD/.palpatine.conf"
+)
+
+for conf in "${CONFIG_PATHS[@]}"; do
+  if [[ -f "$conf" ]]; then
+    # shellcheck disable=SC1090
+    source "$conf"
+  fi
+done
+
+# ----------------------------
+# Source library files
+# All core functions live in lib/*.sh
+# ----------------------------
+for file in "$LIB_DIR"/*.sh; do
+  # shellcheck disable=SC1090
+  source "$file"
+done
+
+# ----------------------------
+# CLI argument parsing
+# ----------------------------
+ACTION=""      # status|run|reboot|shutdown
+CMDLINE=""     # command for run
+FOCUS=""       # focus server (name or index)
+
+print_help(){
+  cat <<EOF
+$APP_NAME $VERSION - $TAGLINE
+
+Usage:
+  $0 [--group <name>] [--user <sshuser>] [--dry-run]
+     [--action <status|run|reboot|shutdown>] [--cmd "<command>"]
+     [--focus "<server|index>"] [--help]
+
+Examples:
+  $0 --group prod --action status
+  $0 --group staging --action run --cmd "df -h"
+  $0 --action reboot --dry-run
+  $0 --focus "root@web-01"
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --group) GROUP="$2"; shift ;;
+    --user) SSH_USER="$2"; shift ;;
+    --action) ACTION="$2"; shift ;;
+    --cmd) CMDLINE="$2"; shift ;;
+    --dry-run) DRY_RUN=true ;;
+    --focus) FOCUS="$2"; shift ;;
+    -h|--help) print_help; exit 0 ;;
+    *) failure "Invalid option: $1"; print_help; exit 2 ;;
+  esac
+  shift
+done
+
+# ----------------------------
+# Bootstrap UI and load servers
+# ----------------------------
+draw_header
+load_servers
+
+# ----------------------------
+# If focus requested directly
+# ----------------------------
+if [[ -n "${FOCUS:-}" ]]; then
+  case "$FOCUS" in
+    ''|*[!0-9]*) focus_server "$FOCUS" ;;
+    *)
+      if (( FOCUS >= 1 && FOCUS <= ${#SERVERS[@]} )); then
+        focus_server "${SERVERS[$((FOCUS-1))]}"
+      else
+        failure "Invalid server index: $FOCUS"
+        exit 2
+      fi
+      ;;
+  esac
+  exit 0
+fi
+
+# ----------------------------
+# Non-interactive mode if ACTION provided
+# ----------------------------
+if [[ -n "${ACTION:-}" ]]; then
+  case "$ACTION" in
+    status) action_status ;;
+    run)
+      [[ -z "${CMDLINE:-}" ]] && { failure "--cmd is required with --action run."; exit 1; }
+      action_run_command
+      ;;
+    reboot) action_reboot_or_shutdown "reboot" ;;
+    shutdown) action_reboot_or_shutdown "shutdown" ;;
+    *) failure "Unknown action: $ACTION"; exit 1 ;;
+  esac
+  exit 0
+fi
+
+# ----------------------------
+# Interactive TUI main loop
+# ----------------------------
+while :; do
+  draw_header
+  echo -e " 🌌  $(L 'cfg_group') : ${COL_MENU}${GROUP}${COL_RESET}      👤  $(L 'cfg_user') : ${COL_MENU}${SSH_USER}${COL_RESET}"
+  echo -e " 🛰️  $(L 'cfg_jobs') : ${COL_MENU}${#SERVERS[@]}${COL_RESET}"
+  draw_line
+  echo -e "${COL_MENU} 1) $(L 'menu.scan')${COL_RESET}"
+  echo -e "${COL_MENU} 2) $(L 'menu.run')${COL_RESET}"
+  echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"
+  echo -e "${COL_MENU} 4) $(L 'menu.shutdown')${COL_RESET}"
+  echo -e "${COL_MENU} 5) $(L 'menu.focus')${COL_RESET}"
+  draw_line
+  echo -e "${COL_MENU} 9) $(L 'menu.quit')${COL_RESET}"
+  draw_line
+
+  read -rp $'\e[94m'"$(L 'prompt.choice') " choice
+  choice="${choice,,}"
+  case "$choice" in
+    1|"s") action_status; pause ;;
+    2) action_run_command; pause ;;
+    3|"r") action_reboot_or_shutdown "reboot"; pause ;;
+    4) action_reboot_or_shutdown "shutdown"; pause ;;
+    5) select_server ;;
+    9|"q") victory "$(L 'victory.farewell')"; exit 0 ;;
+    *) alert "$(L 'alert.invalid')" ;;
+  esac
+done
