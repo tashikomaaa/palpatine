@@ -37,6 +37,9 @@ for file in "$LIB_DIR"/*.sh; do
   source "$file"
 done
 
+# Load optional plugins (if any register themselves)
+load_plugins
+
 # ----------------------------
 # CLI argument parsing
 # ----------------------------
@@ -121,19 +124,21 @@ fi
 # ----------------------------
 while :; do
   draw_header
-  echo -e " 🌌  $(L 'cfg_group') : ${COL_MENU}${GROUP}${COL_RESET}      👤  $(L 'cfg_user') : ${COL_MENU}${SSH_USER}${COL_RESET}"
-  echo -e " 🛰️  $(L 'cfg_jobs') : ${COL_MENU}${#SERVERS[@]}${COL_RESET}"
+  draw_section_title "$(L 'prompt.choice_short')"
+  draw_menu_option "1" "🛰️" "$(L 'menu.scan')" "(s)"
+  draw_menu_option "2" "🛠️" "$(L 'menu.run')"
+  draw_menu_option "3" "🔁" "$(L 'menu.reboot')" "(r)"
+  draw_menu_option "4" "⏻" "$(L 'menu.shutdown')"
+  draw_menu_option "5" "🎯" "$(L 'menu.focus')"
+  if plugins_available; then
+    draw_menu_option "6" "🧩" "$(L 'menu.plugins')" "(p)"
+  fi
   draw_line
-  echo -e "${COL_MENU} 1) $(L 'menu.scan')${COL_RESET}"
-  echo -e "${COL_MENU} 2) $(L 'menu.run')${COL_RESET}"
-  echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"
-  echo -e "${COL_MENU} 4) $(L 'menu.shutdown')${COL_RESET}"
-  echo -e "${COL_MENU} 5) $(L 'menu.focus')${COL_RESET}"
-  draw_line
-  echo -e "${COL_MENU} 9) $(L 'menu.quit')${COL_RESET}"
+  draw_menu_option "9" "🚪" "$(L 'menu.quit')" "(q)"
   draw_line
 
-  read -rp $'\e[94m'"$(L 'prompt.choice') " choice
+  choice_prompt=$'\e[94m'"$(L 'prompt.choice') "
+  read -rp "${choice_prompt}${COL_RESET}" choice
   choice="${choice,,}"
   case "$choice" in
     1|"s") action_status; pause ;;
@@ -141,6 +146,13 @@ while :; do
     3|"r") action_reboot_or_shutdown "reboot"; pause ;;
     4) action_reboot_or_shutdown "shutdown"; pause ;;
     5) select_server ;;
+    6|"p")
+      if plugins_available; then
+        show_plugin_menu
+      else
+        alert "$(L 'plugins.none')"
+      fi
+      ;;
     9|"q") victory "$(L 'victory.farewell')"; exit 0 ;;
     *) alert "$(L 'alert.invalid')" ;;
   esac

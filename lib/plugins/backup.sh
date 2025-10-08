@@ -2,18 +2,31 @@
 
 plugin_backup_menu(){
   draw_header
-  draw_block_top; draw_center "📦 Module de Sauvegarde Impériale"; draw_block_bot
-  echo -e "${COL_MENU}1) Sauvegarder /etc sur tous les serveurs${COL_RESET}"
-  echo -e "${COL_MENU}2) Sauvegarder /var/www sur tous les serveurs${COL_RESET}"
-  echo -e "${COL_MENU}3) Retour${COL_RESET}"
+  draw_section_title "$(L 'plugin.backup.title')"
   draw_line
-  read -rp $'\e[94mChoix:\e[0m ' sub
+  draw_menu_option "1" "🗄️" "$(L 'plugin.backup.option_etc')"
+  draw_menu_option "2" "💾" "$(L 'plugin.backup.option_www')"
+  draw_menu_option "3" "↩️" "$(L 'menu.back')"
+  draw_line
+  local prompt
+  prompt=$'\e[94m'"$(L 'prompt.choice_short') "
+  read -rp "${prompt}${COL_RESET}" sub
   case "$sub" in
-    1) empire "Sauvegarde de /etc"; for s in "${SERVERS[@]}"; do run_ssh_cmd "$s" "sudo tar czf /tmp/etc-$(date +%Y%m%d).tar.gz /etc"; done ;;
-    2) empire "Sauvegarde de /var/www"; for s in "${SERVERS[@]}"; do run_ssh_cmd "$s" "sudo tar czf /tmp/www-$(date +%Y%m%d).tar.gz /var/www"; done ;;
+    1)
+      empire "$(L 'plugin.backup.log_etc')"
+      for s in "${SERVERS[@]}"; do
+        run_ssh_cmd "$s" "sudo tar czf /tmp/etc-$(date +%Y%m%d).tar.gz /etc"
+      done
+      ;;
+    2)
+      empire "$(L 'plugin.backup.log_www')"
+      for s in "${SERVERS[@]}"; do
+        run_ssh_cmd "$s" "sudo tar czf /tmp/www-$(date +%Y%m%d).tar.gz /var/www"
+      done
+      ;;
     3) : ;;  # retour = no-op, on laisse la main au menu principal
-    *) alert "Choix invalide." ;;
+    *) alert "$(L 'alert.invalid')" ;;
   esac
 }
 
-register_plugin "backup" "Sauvegardes impériales" plugin_backup_menu
+register_plugin "backup" "$(L 'plugin.backup.label')" plugin_backup_menu
