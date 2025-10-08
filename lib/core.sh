@@ -142,9 +142,9 @@ run_ssh_cmd(){
     # Authentication error
     if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
       # prompt user to retry interactively for this host
-      local prompt_text ans
-      prompt_text="$(printf '%s %s. %s' "$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for')" "$host" "$(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:')")"
-      prompt_read_text "$prompt_text" ans "$COL_INFO" || ans=""
+      local prompt ans
+      prompt=$'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $host. $(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:') "
+      read -rp "${prompt}${COL_RESET}" ans || ans=""
       if [[ "$ans" =~ ^[oOyY]$ ]]; then
         # interactive retry using interactive SSH options
         ssh "${SSH_OPTS_INTERACTIVE[@]}" "$host" -- "$cmd"

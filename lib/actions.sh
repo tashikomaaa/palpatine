@@ -90,9 +90,9 @@ action_status(){
                     ssh_stat="auth_failed"
                     # If interactive retry is enabled and TTY present, offer interactive retry
                     if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
-                        local prompt_text ans
-                        prompt_text="$(printf '%s %s. %s' "$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for')" "$s" "$(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:')")"
-                        prompt_read_text "$prompt_text" ans "$COL_INFO" || ans=""
+                        local prompt ans
+                        prompt=$'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $s. $(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:') "
+                        read -rp "${prompt}${COL_RESET}" ans || ans=""
                         if [[ "$ans" =~ ^[oOyY]$ ]]; then
                             # interactive retry using SSH_OPTS_INTERACTIVE
                             ssh_output="$(ssh "${SSH_OPTS_INTERACTIVE[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || ssh_exit=$?
@@ -220,10 +220,12 @@ action_reboot_or_shutdown(){
     
     # Build the confirmation prompt in a variable to avoid complex inline quoting
     prompt_text="$(L 'prompt.confirm' 2>/dev/null || echo 'Confirm? Type O to confirm:')"
-
-    local c
-    prompt_read_text "$prompt_text" c "$COL_INFO" || c=""
-
+    
+    # Ask user for confirmation (colored). We put the coloring outside substitution to avoid quoting issues.
+    local confirm_prompt
+    confirm_prompt=$'\e[94m'"${prompt_text} "
+    read -rp "${confirm_prompt}${COL_RESET}" c
+    
     # If user didn't confirm, abort
     [[ "${c:-}" =~ ^([oO]|[yY])$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
     

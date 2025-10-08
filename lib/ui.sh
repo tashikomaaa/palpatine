@@ -12,16 +12,60 @@ VERSION="${VERSION:-v6}"
 UI_LANG="${UI_LANG:-fr}"
 
 # Color palette (favor a modern pink/blue theme with strong contrast)
-COL_RESET=$'\e[0m'
-COL_HEADER=$'\e[38;5;213m'   # magenta accent
-COL_SUB=$'\e[38;5;244m'      # muted grey
-COL_INFO=$'\e[38;5;81m'      # cyan/blue accent
-COL_OK=$'\e[1;32m'           # green
-COL_WARN=$'\e[1;33m'         # yellow
-COL_ERR=$'\e[1;31m'          # red bold
-COL_MENU=$'\e[1;97m'         # bold white
-COL_FRAME=$'\e[38;5;111m'    # frame/border color
-COL_MUTED=$'\e[38;5;240m'    # divider color
+COL_RESET="\e[0m"
+COL_HEADER="\e[38;5;213m"   # magenta accent
+COL_SUB="\e[38;5;244m"      # muted grey
+COL_INFO="\e[38;5;81m"      # cyan/blue accent
+COL_OK="\e[1;32m"           # green
+COL_WARN="\e[1;33m"         # yellow
+COL_ERR="\e[1;31m"          # red bold
+COL_MENU="\e[1;97m"         # bold white
+COL_FRAME="\e[38;5;111m"    # frame/border color
+COL_MUTED="\e[38;5;240m"    # divider color
+
+# ----------------------------
+# Layout helpers
+# ----------------------------
+_TERM_MIN_WIDTH=48
+
+get_term_width(){
+  local cols
+  if cols=$(tput cols 2>/dev/null); then
+    if (( cols < _TERM_MIN_WIDTH )); then
+      echo "$_TERM_MIN_WIDTH"
+    else
+      echo "$cols"
+    fi
+  else
+    echo 72
+  fi
+}
+
+strip_ansi(){
+  printf '%s' "$*" | sed -E $'s/\x1B\[[0-9;]*[A-Za-z]//g'
+}
+
+repeat_char(){
+  local char="$1" count="$2" line
+  if (( count <= 0 )); then
+    printf ''
+    return
+  fi
+  printf -v line '%*s' "$count" ''
+  printf '%s' "${line// /$char}"
+}
+
+pad_line(){
+  local text="$1" width="${2:-$(get_term_width)}"
+  local plain
+  plain="$(strip_ansi "$text")"
+  local len=${#plain}
+  if (( len >= width )); then
+    echo "$text"
+  else
+    printf '%s%s' "$text" "$(repeat_char ' ' $((width - len)))"
+  fi
+}
 
 # ----------------------------
 # Layout helpers
@@ -173,11 +217,128 @@ _locale_lookup(){
 
   case "$lang" in
     fr)
-      value="${_L_FR[$key]:-}"
-      [[ -n "$value" ]] || value="${_L_EN[$key]:-}"
+      case "$key" in
+        app_name) echo "$APP_NAME" ;;
+        tagline) echo "$TAGLINE" ;;
+        quote) echo "« Que le SSH coule en vous. »" ;;
+        cfg_active) echo "Active configuration:" ;;
+        cfg_group) echo "Group" ;;
+        cfg_user) echo "User" ;;
+        cfg_jobs) echo "Loaded systems" ;;
+        cfg_timeout) echo "Timeout" ;;
+        menu.scan) echo "Scan systems (ping + uptime)" ;;
+        menu.run) echo "Execute an order" ;;
+        menu.reboot) echo "Reboot the fleet" ;;
+        menu.shutdown) echo "Shutdown the fleet" ;;
+        menu.focus) echo "Control a system (focus)" ;;
+        menu.plugins) echo "Ouvrir le hangar à plugins" ;;
+        menu.back) echo "Retour" ;;
+        menu.quit) echo "Quit the Empire" ;;
+        prompt.choice) echo "Choice (or letter: s=scan, r=reboot, q=quit):" ;;
+        prompt.choice_short) echo "Choix :" ;;
+        prompt.enter) echo "[Press Enter to continue]" ;;
+        prompt.confirm) echo "Confirm? Type O to confirm:" ;;
+        prompt.retry_interactive) echo "Réessayer en interactif ? [o/N]:" ;;
+        prompt.password_q) echo "Password required for" ;;
+        empire.scan) echo "Scanning the fleet..." ;;
+        empire.deploy) echo "Deploying the order:" ;;
+        empire.completed) echo "Scan finished." ;;
+        status.ping_ok) echo "Ping: OK" ;;
+        status.ping_fail) echo "Ping failed for" ;;
+        focus.title) echo "Focus" ;;
+        focus.status_label) echo "Statut" ;;
+        focus.status_online) echo "en ligne" ;;
+        focus.status_offline) echo "hors ligne" ;;
+        focus.menu.uptime) echo "Consulter l'uptime" ;;
+        focus.menu.run) echo "Exécuter une commande" ;;
+        focus.menu.reboot) echo "Redémarrer" ;;
+        focus.menu.shutdown) echo "Éteindre" ;;
+        focus.menu.ssh) echo "Ouvrir un SSH interactif" ;;
+        focus.menu.back) echo "Retour à la flotte" ;;
+        focus.prompt.command) echo "Commande à exécuter :" ;;
+        focus.prompt.select) echo "Numéro ou hôte (ex. 2 ou root@web-01) :" ;;
+        plugins.title) echo "Hangar à plugins" ;;
+        plugins.prompt.choice) echo "Choisissez un plugin (0 pour revenir) :" ;;
+        plugins.none) echo "Aucun plugin chargé." ;;
+        plugin.backup.label) echo "Sauvegardes impériales" ;;
+        plugin.backup.title) echo "📦 Module de sauvegarde impériale" ;;
+        plugin.backup.option_etc) echo "Sauvegarder /etc sur tous les serveurs" ;;
+        plugin.backup.option_www) echo "Sauvegarder /var/www sur tous les serveurs" ;;
+        plugin.backup.log_etc) echo "Sauvegarde de /etc" ;;
+        plugin.backup.log_www) echo "Sauvegarde de /var/www" ;;
+        plugin.monitoring.label) echo "Monitoring impérial" ;;
+        plugin.monitoring.title) echo "🛰️ Monitoring impérial" ;;
+        msg.no_servers) echo "No servers found." ;;
+        alert.invalid) echo "Invalid choice." ;;
+        alert.cancel) echo "Operation cancelled." ;;
+        victory.farewell) echo "The Empire salutes you." ;;
+        *) echo "$key" ;; # fallback prints key
+      esac
       ;;
-    en|*)
-      value="${_L_EN[$key]:-}"
+    en)
+      case "$key" in
+        app_name) echo "$APP_NAME" ;;
+        tagline) echo "$TAGLINE" ;;
+        quote) echo "\"Good... let the SSH flow through you.\"" ;;
+        cfg_active) echo "Active configuration:" ;;
+        cfg_group) echo "Group" ;;
+        cfg_user) echo "User" ;;
+        cfg_jobs) echo "Loaded systems" ;;
+        cfg_timeout) echo "Timeout" ;;
+        menu.scan) echo "Scan systems (ping + uptime)" ;;
+        menu.run) echo "Execute an order" ;;
+        menu.reboot) echo "Reboot the fleet" ;;
+        menu.shutdown) echo "Shutdown the fleet" ;;
+        menu.focus) echo "Control a system (focus)" ;;
+        menu.plugins) echo "Open the plugin bay" ;;
+        menu.back) echo "Return" ;;
+        menu.quit) echo "Quit the Empire" ;;
+        prompt.choice) echo "Choice (or letter: s=scan, r=reboot, q=quit):" ;;
+        prompt.choice_short) echo "Choice:" ;;
+        prompt.enter) echo "[Press Enter to continue]" ;;
+        prompt.confirm) echo "Confirm? Type Y to confirm:" ;;
+        prompt.retry_interactive) echo "Retry interactively? [y/N]:" ;;
+        prompt.password_q) echo "Password required for" ;;
+        empire.scan) echo "Scanning the fleet..." ;;
+        empire.deploy) echo "Deploying the order:" ;;
+        empire.completed) echo "Scan finished." ;;
+        status.ping_ok) echo "Ping: OK" ;;
+        status.ping_fail) echo "Ping failed for" ;;
+        focus.title) echo "Focus" ;;
+        focus.status_label) echo "Status" ;;
+        focus.status_online) echo "online" ;;
+        focus.status_offline) echo "offline" ;;
+        focus.menu.uptime) echo "Check uptime" ;;
+        focus.menu.run) echo "Execute command" ;;
+        focus.menu.reboot) echo "Reboot" ;;
+        focus.menu.shutdown) echo "Shutdown" ;;
+        focus.menu.ssh) echo "Open interactive SSH" ;;
+        focus.menu.back) echo "Return to fleet" ;;
+        focus.prompt.command) echo "Command to run:" ;;
+        focus.prompt.select) echo "Num or hostname (e.g. 2 or root@web-01):" ;;
+        plugins.title) echo "Plugin hangar" ;;
+        plugins.prompt.choice) echo "Select a plugin (0 to return):" ;;
+        plugins.none) echo "No plugins loaded." ;;
+        plugin.backup.label) echo "Imperial backups" ;;
+        plugin.backup.title) echo "📦 Imperial backup module" ;;
+        plugin.backup.option_etc) echo "Backup /etc on all servers" ;;
+        plugin.backup.option_www) echo "Backup /var/www on all servers" ;;
+        plugin.backup.log_etc) echo "Backing up /etc" ;;
+        plugin.backup.log_www) echo "Backing up /var/www" ;;
+        plugin.monitoring.label) echo "Imperial monitoring" ;;
+        plugin.monitoring.title) echo "🛰️ Imperial monitoring" ;;
+        msg.no_servers) echo "No servers found." ;;
+        alert.invalid) echo "Invalid choice." ;;
+        alert.cancel) echo "Operation cancelled." ;;
+        victory.farewell) echo "The Empire salutes you." ;;
+        *) echo "$key" ;;
+      esac
+      ;;
+    *)
+      # fallback to English
+      case "$key" in
+        *) echo "$key" ;;
+      esac
       ;;
   esac
 

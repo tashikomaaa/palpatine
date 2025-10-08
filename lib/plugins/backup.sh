@@ -2,14 +2,16 @@
 
 plugin_backup_menu(){
   draw_header
-  draw_section_title "$(L 'plugin.backup.title')"
+  draw_block_top
+  draw_center "$(L 'plugin.backup.title')"
+  draw_block_bot
+  echo -e "${COL_MENU}1) $(L 'plugin.backup.option_etc')${COL_RESET}"
+  echo -e "${COL_MENU}2) $(L 'plugin.backup.option_www')${COL_RESET}"
+  echo -e "${COL_MENU}3) $(L 'menu.back')${COL_RESET}"
   draw_line
-  draw_menu_option "1" "🗄️" "$(L 'plugin.backup.option_etc')"
-  draw_menu_option "2" "💾" "$(L 'plugin.backup.option_www')"
-  draw_menu_option "3" "↩️" "$(L 'menu.back')"
-  draw_line
-  local sub
-  prompt_read_key 'prompt.choice_short' sub 'Choice:' "$COL_INFO" || sub=""
+  local prompt
+  prompt=$'\e[94m'"$(L 'prompt.choice_short') "
+  read -rp "${prompt}${COL_RESET}" sub
   case "$sub" in
     1)
       empire "$(L 'plugin.backup.log_etc')"

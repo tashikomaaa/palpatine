@@ -124,20 +124,23 @@ fi
 # ----------------------------
 while :; do
   draw_header
-  draw_section_title "$(L 'prompt.choice_short')"
-  draw_menu_option "1" "🛰️" "$(L 'menu.scan')" "(s)"
-  draw_menu_option "2" "🛠️" "$(L 'menu.run')"
-  draw_menu_option "3" "🔁" "$(L 'menu.reboot')" "(r)"
-  draw_menu_option "4" "⏻" "$(L 'menu.shutdown')"
-  draw_menu_option "5" "🎯" "$(L 'menu.focus')"
+  echo -e " 🌌  $(L 'cfg_group') : ${COL_MENU}${GROUP}${COL_RESET}      👤  $(L 'cfg_user') : ${COL_MENU}${SSH_USER}${COL_RESET}"
+  echo -e " 🛰️  $(L 'cfg_jobs') : ${COL_MENU}${#SERVERS[@]}${COL_RESET}"
+  draw_line
+  echo -e "${COL_MENU} 1) $(L 'menu.scan')${COL_RESET}"
+  echo -e "${COL_MENU} 2) $(L 'menu.run')${COL_RESET}"
+  echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"
+  echo -e "${COL_MENU} 4) $(L 'menu.shutdown')${COL_RESET}"
+  echo -e "${COL_MENU} 5) $(L 'menu.focus')${COL_RESET}"
   if plugins_available; then
-    draw_menu_option "6" "🧩" "$(L 'menu.plugins')" "(p)"
+    echo -e "${COL_MENU} 6) $(L 'menu.plugins')${COL_RESET}"
   fi
   draw_line
   draw_menu_option "9" "🚪" "$(L 'menu.quit')" "(q)"
   draw_line
 
-  prompt_read_key 'prompt.choice' choice 'Choice (or letter: s=scan, r=reboot, q=quit):' "$COL_INFO" || choice=""
+  choice_prompt=$'\e[94m'"$(L 'prompt.choice') "
+  read -rp "${choice_prompt}${COL_RESET}" choice
   choice="${choice,,}"
   case "$choice" in
     1|"s") action_status; pause ;;

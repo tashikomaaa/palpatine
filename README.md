@@ -190,7 +190,6 @@ Launch `./palpatine` without args. The main menu offers:
 * Shutdown the fleet
 * Focus on a server for per-host actions
 * Open the plugin bay (if plugins are installed)
-* Enjoy a responsive neon header that highlights the active configuration with icons and adaptive dividers
 
 ### Focus mode
 

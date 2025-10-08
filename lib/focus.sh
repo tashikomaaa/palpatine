@@ -35,7 +35,9 @@ focus_server(){
     echo -e "${COL_MENU} 6) $(L 'focus.menu.back')${COL_RESET}"
     draw_line
 
-    prompt_read_key 'prompt.choice_short' sub 'Choice:' "$COL_INFO" || sub=""
+    local menu_prompt
+    menu_prompt=$'\e[94m'"$(L 'prompt.choice_short' 2>/dev/null || echo 'Choice:') "
+    read -rp "${menu_prompt}${COL_RESET}" sub
 
     case "${sub,,}" in
       1)
@@ -46,7 +48,9 @@ focus_server(){
         fi
         ;;
       2)
-        prompt_read_key 'focus.prompt.command' cmd 'Command to run:' "$COL_INFO" || cmd=""
+        local cmd_prompt
+        cmd_prompt=$'\e[94m'"$(L 'focus.prompt.command' 2>/dev/null || echo 'Command to run:') "
+        read -rp "${cmd_prompt}${COL_RESET}" cmd
         if [[ -n "${cmd:-}" ]]; then
           run_ssh_cmd "$server" "$cmd"
         else
@@ -85,7 +89,9 @@ select_server(){
   done
   draw_line
 
-  prompt_read_key 'focus.prompt.select' pick 'Num or hostname:' "$COL_INFO" || pick=""
+  local pick_prompt
+  pick_prompt=$'\e[94m'"$(L 'focus.prompt.select' 2>/dev/null || echo 'Num or hostname:') "
+  read -rp "${pick_prompt}${COL_RESET}" pick
   if [[ -z "${pick:-}" ]]; then
     alert "$(L 'alert.cancel' 2>/dev/null || echo 'Cancelled')"
     return
