@@ -33,7 +33,6 @@ Palpatine is a terminal-based fleet manager written in Bash. It provides a small
   - [Development notes (for maintainers)](#development-notes-for-maintainers)
   - [Example `~/.palpatine.conf` (copy/paste)](#example-palpatineconf-copypaste)
   - [License](#license)
-  - [Final notes](#final-notes)
 
 ---
 
@@ -57,7 +56,7 @@ Palpatine intentionally keeps dependencies tiny so it runs on most Linux and mac
 Clone the repository and make the main script executable:
 
 ```bash
-git clone [palpatine](https://github.com/tashikomaaa/palpatine.git) palpatine
+git clone https://github.com/tashikomaaa/palpatine.git palpatine
 cd palpatine
 chmod +x palpatine
 ```
@@ -335,19 +334,9 @@ Recommended: **MIT License** (simple and permissive). Create a `LICENSE` file wi
 ```
 MIT License
 
-Copyright (c) 2025 <your-name>
+Copyright (c) 2025 tashikomaaa
 
 Permission is hereby granted, free of charge, to any person obtaining a copy...
 ```
 
 ---
-
-## Final notes
-
-This README is pragmatic and engineer-friendly — concise examples, config options, and troubleshooting steps. If you want, I can also:
-
-* add a `palpatine --scan-json on|off` CLI override;
-* generate a `LICENSE` file for you (MIT / Apache-2.0);
-* provide a `systemd` timer/unit or cron example to run scheduled scans writing to a fixed `SCAN_OUTPUT_FILE`.
-
-Tell me which of those you'd like next and I will provide them.
