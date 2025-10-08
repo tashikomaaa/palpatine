@@ -304,15 +304,27 @@ jq '.[] | {host, ping, ssh}' logs/scans/scan-20251008_153000.json
 Palpatine aims to be simple and auditable. If you want to contribute:
 
 1. Fork the repo.
-2. Add a clear commit message and provide tests or manual test steps.
+2. Add a clear commit message and provide tests or manual test steps (run `./tests/run.sh`).
 3. Open a PR with explanation and rationale.
 
 Suggested improvements:
 
-* plugin system (planned)
-* better i18n with locale files
+* additional built-in plugins (backups, observability, remediation)
+* alternate visual themes (light mode, high contrast)
 * optional output formats: CSV, JSONL, Prometheus metrics
 * richer interactive UI (fzf integration or `dialog`)
+
+---
+
+## Testing
+
+Automated checks live in `tests/`. Run everything locally with:
+
+```bash
+./tests/run.sh
+```
+
+The script exercises the plugin registry/loader and ensures bundled plugins register correctly. Pair it with `bash -n lib/*.sh lib/plugins/*.sh` for quick syntax validation.
 
 ---
 

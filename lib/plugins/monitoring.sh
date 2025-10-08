@@ -4,7 +4,8 @@ plugin_monitoring_menu(){
   draw_center "$(L 'plugin.monitoring.title')"
   draw_block_bot
   for s in "${SERVERS[@]}"; do
-    draw_line; echo " 📡 $s"
+    draw_line
+    echo " 📡 $s"
     run_ssh_cmd "$s" "uptime && df -h / && free -m | grep Mem"
   done
 }

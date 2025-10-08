@@ -136,7 +136,7 @@ while :; do
     echo -e "${COL_MENU} 6) $(L 'menu.plugins')${COL_RESET}"
   fi
   draw_line
-  echo -e "${COL_MENU} 9) $(L 'menu.quit')${COL_RESET}"
+  draw_menu_option "9" "🚪" "$(L 'menu.quit')" "(q)"
   draw_line
 
   choice_prompt=$'\e[94m'"$(L 'prompt.choice') "
