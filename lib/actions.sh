@@ -179,7 +179,7 @@ action_status(){
 # action_run_command: parallel command runner across fleet
 # ---------------------------
 action_run_command(){
-    read -rp $'\e[94m'"$(L 'menu.run' 2>/dev/null || echo 'Order to run:')" $'\e[0m ' cmdline
+    prompt_read_key 'focus.prompt.command' cmdline 'Order to run:' "$COL_INFO" || cmdline=""
     [[ -z "${cmdline:-}" ]] && { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
     empire "$(L 'empire.deploy' 2>/dev/null || echo 'Deploying:') ${COL_MENU}$cmdline${COL_RESET}"
     summary_init
@@ -227,7 +227,7 @@ action_reboot_or_shutdown(){
     read -rp "${confirm_prompt}${COL_RESET}" c
     
     # If user didn't confirm, abort
-    [[ "${c:-}" =~ ^[oO]$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+    [[ "${c:-}" =~ ^([oO]|[yY])$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
     
     empire "Order: $verb"
     summary_init

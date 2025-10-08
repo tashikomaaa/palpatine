@@ -67,10 +67,155 @@ pad_line(){
   fi
 }
 
-# L(key) returns translated string according to UI_LANG
-L(){
+# ----------------------------
+# Layout helpers
+# ----------------------------
+_TERM_MIN_WIDTH=48
+
+get_term_width(){
+  local cols
+  if cols=$(tput cols 2>/dev/null); then
+    if (( cols < _TERM_MIN_WIDTH )); then
+      echo "$_TERM_MIN_WIDTH"
+    else
+      echo "$cols"
+    fi
+  else
+    echo 72
+  fi
+}
+
+strip_ansi(){
+  printf '%s' "$*" | sed -E $'s/\x1B\[[0-9;]*[A-Za-z]//g'
+}
+
+repeat_char(){
+  local char="$1" count="$2" line
+  if (( count <= 0 )); then
+    printf ''
+    return
+  fi
+  printf -v line '%*s' "$count" ''
+  printf '%s' "${line// /$char}"
+}
+
+pad_line(){
+  local text="$1" width="${2:-$(get_term_width)}"
+  local plain
+  plain="$(strip_ansi "$text")"
+  local len=${#plain}
+  if (( len >= width )); then
+    echo "$text"
+  else
+    printf '%s%s' "$text" "$(repeat_char ' ' $((width - len)))"
+  fi
+}
+
+# Translation dictionaries are initialised lazily to keep startup cost low.
+declare -gA _L_EN=()
+declare -gA _L_FR=()
+_L_INIT=0
+
+_init_locales(){
+  ((_L_INIT)) && return
+  _L_INIT=1
+
+  declare -gA _L_EN=(
+    [app_name]="$APP_NAME"
+    [tagline]="$TAGLINE"
+    [quote]="\"Good... let the SSH flow through you.\""
+    [cfg_active]="Active configuration:"
+    [cfg_group]="Group"
+    [cfg_user]="User"
+    [cfg_jobs]="Loaded systems"
+    [cfg_timeout]="Timeout"
+    [menu.scan]="Scan systems (ping + uptime)"
+    [menu.run]="Execute an order"
+    [menu.reboot]="Reboot the fleet"
+    [menu.shutdown]="Shutdown the fleet"
+    [menu.focus]="Control a system (focus)"
+    [menu.plugins]="Open the plugin bay"
+    [menu.back]="Return"
+    [menu.quit]="Quit the Empire"
+    [prompt.choice]="Choice (or letter: s=scan, r=reboot, q=quit):"
+    [prompt.choice_short]="Choice:"
+    [prompt.enter]="[Press Enter to continue]"
+    [prompt.confirm]="Confirm? Type Y to confirm:"
+    [prompt.retry_interactive]="Retry interactively? [y/N]:"
+    [prompt.password_q]="Password required for"
+    [empire.scan]="Scanning the fleet..."
+    [empire.deploy]="Deploying the order:"
+    [empire.completed]="Scan finished."
+    [status.ping_ok]="Ping: OK"
+    [status.ping_fail]="Ping failed for"
+    [focus.title]="Focus"
+    [focus.status_label]="Status"
+    [focus.status_online]="online"
+    [focus.status_offline]="offline"
+    [focus.menu.uptime]="Check uptime"
+    [focus.menu.run]="Execute command"
+    [focus.menu.reboot]="Reboot"
+    [focus.menu.shutdown]="Shutdown"
+    [focus.menu.ssh]="Open interactive SSH"
+    [focus.menu.back]="Return to fleet"
+    [focus.prompt.command]="Command to run:"
+    [focus.prompt.select]="Num or hostname (e.g. 2 or root@web-01):"
+    [plugins.title]="Plugin hangar"
+    [plugins.prompt.choice]="Select a plugin (0 to return):"
+    [plugins.none]="No plugins loaded."
+    [plugin.backup.label]="Imperial backups"
+    [plugin.backup.title]="📦 Imperial backup module"
+    [plugin.backup.option_etc]="Backup /etc on all servers"
+    [plugin.backup.option_www]="Backup /var/www on all servers"
+    [plugin.backup.log_etc]="Backing up /etc"
+    [plugin.backup.log_www]="Backing up /var/www"
+    [plugin.monitoring.label]="Imperial monitoring"
+    [plugin.monitoring.title]="🛰️ Imperial monitoring"
+    [msg.no_servers]="No servers found."
+    [alert.invalid]="Invalid choice."
+    [alert.cancel]="Operation cancelled."
+    [victory.farewell]="The Empire salutes you."
+  )
+
+  declare -gA _L_FR=(
+    [quote]="« Que le SSH coule en vous. »"
+    [menu.plugins]="Ouvrir le hangar à plugins"
+    [menu.back]="Retour"
+    [prompt.choice_short]="Choix :"
+    [prompt.confirm]="Confirmer ? Tapez O pour valider :"
+    [prompt.retry_interactive]="Réessayer en interactif ? [o/N]:"
+    [focus.status_label]="Statut"
+    [focus.status_online]="en ligne"
+    [focus.status_offline]="hors ligne"
+    [focus.menu.uptime]="Consulter l'uptime"
+    [focus.menu.run]="Exécuter une commande"
+    [focus.menu.reboot]="Redémarrer"
+    [focus.menu.shutdown]="Éteindre"
+    [focus.menu.ssh]="Ouvrir un SSH interactif"
+    [focus.menu.back]="Retour à la flotte"
+    [focus.prompt.command]="Commande à exécuter :"
+    [focus.prompt.select]="Numéro ou hôte (ex. 2 ou root@web-01) :"
+    [plugins.title]="Hangar à plugins"
+    [plugins.prompt.choice]="Choisissez un plugin (0 pour revenir) :"
+    [plugins.none]="Aucun plugin chargé."
+    [plugin.backup.label]="Sauvegardes impériales"
+    [plugin.backup.title]="📦 Module de sauvegarde impériale"
+    [plugin.backup.option_etc]="Sauvegarder /etc sur tous les serveurs"
+    [plugin.backup.option_www]="Sauvegarder /var/www sur tous les serveurs"
+    [plugin.backup.log_etc]="Sauvegarde de /etc"
+    [plugin.backup.log_www]="Sauvegarde de /var/www"
+    [plugin.monitoring.label]="Monitoring impérial"
+    [plugin.monitoring.title]="🛰️ Monitoring impérial"
+  )
+}
+
+_locale_lookup(){
+  _init_locales
   local key="$1"
-  case "${UI_LANG,,}" in
+  local lang="${UI_LANG,,}"
+  local value=""
+
+  case "$lang" in
     fr)
       case "$key" in
         app_name) echo "$APP_NAME" ;;
@@ -196,6 +341,51 @@ L(){
       esac
       ;;
   esac
+
+  if [[ -z "$value" ]]; then
+    printf '%s' "$key"
+  else
+    printf '%s' "$value"
+  fi
+}
+
+# L(key) returns translated string according to UI_LANG
+L(){
+  local key="$1"
+  _locale_lookup "$key"
+  printf '\n'
+}
+
+_prompt_resolve_message(){
+  local key="$1" fallback="$2"
+  local message
+  message="$(_locale_lookup "$key")"
+  if [[ "$message" == "$key" && -n "$fallback" && "$fallback" != "$key" ]]; then
+    message="$fallback"
+  fi
+  printf '%s' "$message"
+}
+
+_prompt_read(){
+  local message="$1" __result="$2" color="$3" suffix="$4"
+  local prompt input status
+  printf -v prompt '%b%s%b%s' "$color" "$message" "$COL_RESET" "$suffix"
+  IFS= read -r -p "$prompt" input
+  status=$?
+  printf -v "$__result" '%s' "$input"
+  return $status
+}
+
+prompt_read_key(){
+  local key="$1" __result="$2" fallback="${3:-$1}" color="${4:-$COL_INFO}" suffix="${5:- }"
+  local message
+  message="$(_prompt_resolve_message "$key" "$fallback")"
+  _prompt_read "$message" "$__result" "$color" "$suffix"
+}
+
+prompt_read_text(){
+  local message="$1" __result="$2" color="${3:-$COL_INFO}" suffix="${4:- }"
+  _prompt_read "$message" "$__result" "$color" "$suffix"
 }
 
 # UI drawing helpers
