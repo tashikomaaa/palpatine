@@ -57,7 +57,7 @@ Palpatine intentionally keeps dependencies tiny so it runs on most Linux and mac
 Clone the repository and make the main script executable:
 
 ```bash
-git clone <your-repo-url> palpatine
+git clone [palpatine](https://github.com/tashikomaaa/palpatine.git) palpatine
 cd palpatine
 chmod +x palpatine
 ```
