@@ -44,20 +44,14 @@ summary_update(){
 }
 summary_print(){
   draw_line
-  printf ' 🧾  %s\n' "$(L 'cfg_active' 2>/dev/null || echo 'Summary:')"
-  printf '   %b✅ OK:%b %d    %b⚠️ Errors:%b %d    %b❌ Down:%b %d\n' \
-    "$COL_OK" "$COL_RESET" "$OK" \
-    "$COL_WARN" "$COL_RESET" "$FAIL" \
-    "$COL_ERR" "$COL_RESET" "$DOWN"
+  echo -e " 🧾  $(L 'cfg_active' 2>/dev/null || echo 'Summary:')"
+  echo -e "   ${COL_OK}✅ OK:${COL_RESET} $OK    ${COL_WARN}⚠️ Errors:${COL_RESET} $FAIL    ${COL_ERR}❌ Down:${COL_RESET} $DOWN"
   draw_line
-  printf '  📜  Log: %s\n' "$LOG_DIR"
+  echo -e "  📜  Log: $LOG_DIR"
 }
 
 # Pause helper
-pause(){
-  local _
-  prompt_read_key 'prompt.enter' _ '[Press Enter to continue]' "$COL_SUB" '' || true
-}
+pause(){ read -rp $'\e[90m'"$(L 'prompt.enter' 2>/dev/null || echo '[Enter to continue]')"$'\e[0m' _ || true; }
 
 # ----------------------------
 # Server management helpers
