@@ -57,19 +57,65 @@ pause(){ read -rp $'\e[90m'"$(L 'prompt.enter' 2>/dev/null || echo '[Enter to co
 # Server management helpers
 # ----------------------------
 load_servers(){
-  # Servers file may be overridden by GROUP variable: servers-<group>.txt
-  if [[ "$GROUP" != "default" ]]; then
-    SERVERS_FILE="$BASE_DIR/servers-$GROUP.txt"
-  fi
-  if [[ ! -f "$SERVERS_FILE" ]]; then
-    failure "Servers file not found: $SERVERS_FILE"
+  local file
+  file="$(current_servers_file)"
+  SERVERS_FILE="$file"
+  if [[ ! -f "$file" ]]; then
+    failure "Servers file not found: $file"
     exit 2
   fi
-  mapfile -t SERVERS < <(sed -e 's/#.*//' -e '/^\s*$/d' "$SERVERS_FILE")
+  mapfile -t SERVERS < <(sed -e 's/#.*//' -e '/^\s*$/d' "$file")
   if [[ ${#SERVERS[@]} -eq 0 ]]; then
     failure "$(L 'msg.no_servers' 2>/dev/null || echo 'No servers found.')"
     exit 2
   fi
+}
+
+current_servers_file(){
+  local file
+  if [[ "${GROUP:-default}" != "default" ]]; then
+    file="$BASE_DIR/servers-${GROUP}.txt"
+  else
+    file="${SERVERS_FILE:-$BASE_DIR/servers.txt}"
+    if [[ "$file" != /* ]]; then
+      file="$BASE_DIR/${file#./}"
+    fi
+  fi
+  printf '%s\n' "$file"
+}
+
+add_server_entry(){
+  local entry="$1"
+  [[ -z "$entry" ]] && { alert "Empty server entry."; return 1; }
+  local file
+  file="$(current_servers_file)"
+  mkdir -p "$(dirname "$file")"
+  touch "$file"
+  if grep -Fxq "$entry" "$file"; then
+    alert "Server already present: $entry"
+    return 0
+  fi
+  printf '%s\n' "$entry" >> "$file"
+  victory "Added $entry to $(basename "$file")"
+}
+
+remove_server_entry(){
+  local entry="$1"
+  [[ -z "$entry" ]] && { alert "Empty server entry."; return 1; }
+  local file tmp
+  file="$(current_servers_file)"
+  if [[ ! -f "$file" ]]; then
+    alert "Servers file not found: $file"
+    return 1
+  fi
+  if ! grep -Fxq "$entry" "$file"; then
+    alert "Server not found: $entry"
+    return 1
+  fi
+  tmp="$(mktemp)"
+  grep -Fxv "$entry" "$file" > "$tmp"
+  mv "$tmp" "$file"
+  victory "Removed $entry from $(basename "$file")"
 }
 
 host_for(){
@@ -205,4 +251,3 @@ ping_host(){
 
   return 1
 }
-

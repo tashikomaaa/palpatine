@@ -1,5 +1,16 @@
 # PALPATINE — Galactic Server Control
-
+                  ⢠⣲⣼⠛⠛⣧⣖⡄⠀⠀
+                ⢠⡲⠙⠁⠀⢰⡆⠀⠈⠋⢖⡄
+                ⣶⡗⠀⠛⢦⣾⣷⣴⠛⠀⢺⣶
+                ⠿⡧⠀⣤⠞⢿⡿⠻⣤⠀⢼⠿
+                ⠘⠵⣠⡀⠀⠸⠇⠀⢀⣤⠮⠃
+                ⠀⠀⠘⠽⢻⣤⣤⡟⠯⠃⠀
+__________        .__                __  .__               
+\______   \_____  |  | ___________ _/  |_|__| ____   ____  
+ |     ___/\__  \ |  | \____ \__  \\   __\  |/    \_/ __ \ 
+ |    |     / __ \|  |_|  |_> > __ \|  | |  |   |  \  ___/ 
+ |____|    (____  /____/   __(____  /__| |__|___|  /\___  >
+                \/     |__|       \/             \/     \/ 
 **Version:** v6 (core-only)
 
 Palpatine is a terminal-based fleet manager written in Bash. It provides a small, auditable, and extensible tool to run commands and manage services across many servers via SSH.
@@ -31,6 +42,7 @@ Palpatine is a terminal-based fleet manager written in Bash. It provides a small
     - [`syntax error: unexpected end of file`](#syntax-error-unexpected-end-of-file)
     - [`local: can only be used in a function`](#local-can-only-be-used-in-a-function)
   - [Contributing](#contributing)
+  - [Testing](#testing)
   - [Development notes (for maintainers)](#development-notes-for-maintainers)
   - [Example `~/.palpatine.conf` (copy/paste)](#example-palpatineconf-copypaste)
   - [License](#license)
@@ -156,6 +168,8 @@ SCAN_INTERACTIVE_RETRY=true
 * `SCAN_OUTPUT_JSON` — `true` / `false`; controls whether `action_status` writes JSON file.
 * `SCAN_OUTPUT_DIR` — directory to write scan files (if not set, defaults to `./logs/scans`).
 * `SCAN_OUTPUT_FILE` — exact file path for scan output (if set, overrides `SCAN_OUTPUT_DIR`).
+* `SCAN_REPORT` — `true` / `false`; enables the Markdown scan report under `logs/reports/`.
+* `SCAN_REPORT_DIR` / `SCAN_REPORT_FILE` — override the default report destination.
 * `SCAN_INTERACTIVE_RETRY` — if `true` and TTY present, when a host reports auth failure during scan, the user is prompted to retry interactively for that host.
 
 ---
@@ -178,6 +192,10 @@ Examples:
 
 # open focus on server #2 from servers.txt
 ./palpatine --focus 2
+
+# add or remove entries from the active servers list
+./palpatine --group prod --add-server "admin@web-04"
+./palpatine --remove-server "legacy-host"
 ```
 
 ### Interactive menu
@@ -190,6 +208,7 @@ Launch `./palpatine` without args. The main menu offers:
 * Shutdown the fleet
 * Focus on a server for per-host actions
 * Open the plugin bay (if plugins are installed)
+* Add or remove entries from the active servers list
 
 ### Focus mode
 
@@ -249,6 +268,8 @@ You can easily pipe the file into `jq` for queries:
 ```bash
 jq '.[] | {host, ping, ssh}' logs/scans/scan-20251008_153000.json
 ```
+
+When `SCAN_REPORT=true`, Palpatine also writes a Markdown report alongside the JSON output (default `./logs/reports/`). The report contains a table summarising ping/SSH results per host and a final counter recap, making it easy to share scan results with teammates.
 
 ---
 

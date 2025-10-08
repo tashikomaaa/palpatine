@@ -87,6 +87,8 @@ L(){
         menu.shutdown) echo "Shutdown the fleet" ;;
         menu.focus) echo "Control a system (focus)" ;;
         menu.plugins) echo "Ouvrir le hangar à plugins" ;;
+        menu.add_server) echo "Ajouter un serveur" ;;
+        menu.remove_server) echo "Supprimer un serveur" ;;
         menu.back) echo "Retour" ;;
         menu.quit) echo "Quit the Empire" ;;
         prompt.choice) echo "Choice (or letter: s=scan, r=reboot, q=quit):" ;;
@@ -94,6 +96,8 @@ L(){
         prompt.enter) echo "[Press Enter to continue]" ;;
         prompt.confirm) echo "Confirm? Type O to confirm:" ;;
         prompt.retry_interactive) echo "Réessayer en interactif ? [o/N]:" ;;
+        prompt.add_server) echo "Serveur à ajouter (user@hôte) :" ;;
+        prompt.remove_server) echo "Serveur à supprimer :" ;;
         prompt.password_q) echo "Password required for" ;;
         empire.scan) echo "Scanning the fleet..." ;;
         empire.deploy) echo "Deploying the order:" ;;
@@ -146,6 +150,8 @@ L(){
         menu.shutdown) echo "Shutdown the fleet" ;;
         menu.focus) echo "Control a system (focus)" ;;
         menu.plugins) echo "Open the plugin bay" ;;
+        menu.add_server) echo "Add a server" ;;
+        menu.remove_server) echo "Remove a server" ;;
         menu.back) echo "Return" ;;
         menu.quit) echo "Quit the Empire" ;;
         prompt.choice) echo "Choice (or letter: s=scan, r=reboot, q=quit):" ;;
@@ -153,6 +159,8 @@ L(){
         prompt.enter) echo "[Press Enter to continue]" ;;
         prompt.confirm) echo "Confirm? Type Y to confirm:" ;;
         prompt.retry_interactive) echo "Retry interactively? [y/N]:" ;;
+        prompt.add_server) echo "Server to add (user@host):" ;;
+        prompt.remove_server) echo "Server to remove:" ;;
         prompt.password_q) echo "Password required for" ;;
         empire.scan) echo "Scanning the fleet..." ;;
         empire.deploy) echo "Deploying the order:" ;;
