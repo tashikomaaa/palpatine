@@ -7,12 +7,6 @@ declare -ag PLUGIN_ORDER=()
 declare -Ag PLUGIN_LABELS=()
 declare -Ag PLUGIN_HANDLERS=()
 
-reset_plugin_registry(){
-  PLUGIN_ORDER=()
-  PLUGIN_LABELS=()
-  PLUGIN_HANDLERS=()
-}
-
 register_plugin(){
   local id="$1" label="$2" handler="$3"
 
@@ -55,15 +49,15 @@ show_plugin_menu(){
 
   while :; do
     draw_line
-    draw_section_title "$(L 'plugins.title')"
+    echo -e "${COL_MENU}$(L 'plugins.title')${COL_RESET}"
     local idx=1
     local id
     for id in "${PLUGIN_ORDER[@]}"; do
       local label="${PLUGIN_LABELS[$id]}"
-      draw_menu_option "$idx" "🧩" "$label"
+      echo -e " ${COL_MENU}$idx) ${label}${COL_RESET}"
       ((idx++))
     done
-    draw_menu_option "0" "↩️" "$(L 'menu.back')"
+    echo -e " ${COL_MENU}0) $(L 'menu.back')${COL_RESET}"
     draw_line
 
     local choice

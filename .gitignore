@@ -1,6 +1,6 @@
 # Ignorer tous les fichiers servers*.txt
 servers*.txt
-
+AGENTS.md
 # Mais garder l'exemple
 !servers-exemple.txt
 

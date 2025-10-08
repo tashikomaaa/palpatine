@@ -1,6 +1,8 @@
 plugin_monitoring_menu(){
   draw_header
-  draw_section_title "$(L 'plugin.monitoring.title')"
+  draw_block_top
+  draw_center "$(L 'plugin.monitoring.title')"
+  draw_block_bot
   for s in "${SERVERS[@]}"; do
     draw_line
     echo " 📡 $s"
