@@ -6,3 +6,4 @@ AGENTS.md
 
 # Ignorer les fichiers de logs et scans
 logs/
+logs/.update-check

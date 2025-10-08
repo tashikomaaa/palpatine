@@ -245,9 +245,8 @@ action_status(){
 # ---------------------------
 # action_run_command: parallel command runner across fleet
 # ---------------------------
-action_run_command(){
-    read -rp $'\e[94m'"$(L 'menu.run' 2>/dev/null || echo 'Order to run:')" $'\e[0m ' cmdline
-    [[ -z "${cmdline:-}" ]] && { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+run_command_parallel(){
+    local cmdline="$1"
     empire "$(L 'empire.deploy' 2>/dev/null || echo 'Deploying:') ${COL_MENU}$cmdline${COL_RESET}"
     summary_init
     set +e
@@ -269,6 +268,16 @@ action_run_command(){
     wait "${pids[@]}" 2>/dev/null || true
     set -e
     summary_print
+    if (( FAIL > 0 || DOWN > 0 )); then
+        return 1
+    fi
+    return 0
+}
+
+action_run_command(){
+    read -rp $'\e[94m'"$(L 'menu.run' 2>/dev/null || echo 'Order to run:')" $'\e[0m ' cmdline
+    [[ -z "${cmdline:-}" ]] && { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+    run_command_parallel "$cmdline"
 }
 
 # ---------------------------
@@ -276,6 +285,7 @@ action_run_command(){
 # ---------------------------
 action_reboot_or_shutdown(){
     local op="$1"
+    local skip_confirm="${2:-}"
     local verb prompt_text c
     
     # Choose human-readable verb (localized)
@@ -288,13 +298,15 @@ action_reboot_or_shutdown(){
     # Build the confirmation prompt in a variable to avoid complex inline quoting
     prompt_text="$(L 'prompt.confirm' 2>/dev/null || echo 'Confirm? Type O to confirm:')"
     
-    # Ask user for confirmation (colored). We put the coloring outside substitution to avoid quoting issues.
-    local confirm_prompt
-    confirm_prompt=$'\e[94m'"${prompt_text} "
-    read -rp "${confirm_prompt}${COL_RESET}" c
-    
-    # If user didn't confirm, abort
-    [[ "${c:-}" =~ ^[oO]$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+    if [[ "$skip_confirm" != "skip_confirm" ]]; then
+        # Ask user for confirmation (colored). We put the coloring outside substitution to avoid quoting issues.
+        local confirm_prompt
+        confirm_prompt=$'\e[94m'"${prompt_text} "
+        read -rp "${confirm_prompt}${COL_RESET}" c
+        
+        # If user didn't confirm, abort
+        [[ "${c:-}" =~ ^[oO]$ ]] || { alert "$(L 'alert.cancel' 2>/dev/null || echo 'Operation cancelled.')"; return; }
+    fi
     
     empire "Order: $verb"
     summary_init
@@ -329,4 +341,81 @@ action_reboot_or_shutdown(){
     set -e
     
     summary_print
+}
+
+# ---------------------------
+# run_playbook: execute sequential actions from a playbook file
+# ---------------------------
+run_playbook(){
+    local file="$1"
+    if [[ -z "$file" ]]; then
+        failure "Playbook path required"
+        return 1
+    fi
+    if [[ ! -f "$file" ]]; then
+        failure "Playbook not found: $file"
+        return 1
+    fi
+
+    empire "Running playbook: ${COL_MENU}$file${COL_RESET}"
+    local line_no=0
+    local raw line action arg
+
+    while IFS= read -r raw || [[ -n "$raw" ]]; do
+        ((line_no++))
+        line="$(printf '%s' "$raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+        [[ -z "$line" || "${line:0:1}" == "#" ]] && continue
+
+        if [[ "$line" == *":"* ]]; then
+            action="${line%%:*}"
+            arg="${line#*:}"
+        else
+            action="$line"
+            arg=""
+        fi
+
+        action="$(printf '%s' "$action" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+        action="${action,,}"
+
+        arg="$(printf '%s' "$arg" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+        case "$action" in
+            scan)
+                action_status || return 1
+                ;;
+            run)
+                if [[ -z "$arg" ]]; then
+                    failure "Playbook ${file}:${line_no}: missing command for 'run'"
+                    return 1
+                fi
+                if ! run_command_parallel "$arg"; then
+                    failure "Playbook ${file}:${line_no}: command failed"
+                    return 1
+                fi
+                ;;
+            reboot)
+                action_reboot_or_shutdown "reboot" "skip_confirm"
+                ;;
+            shutdown)
+                action_reboot_or_shutdown "shutdown" "skip_confirm"
+                ;;
+            sleep|wait)
+                if [[ "$arg" =~ ^[0-9]+$ ]]; then
+                    sleep "$arg"
+                else
+                    failure "Playbook ${file}:${line_no}: invalid duration '$arg'"
+                    return 1
+                fi
+                ;;
+            note)
+                empire "$arg"
+                ;;
+            *)
+                failure "Playbook ${file}:${line_no}: unknown directive '$action'"
+                return 1
+                ;;
+        esac
+    done < "$file"
+
+    victory "Playbook completed"
 }

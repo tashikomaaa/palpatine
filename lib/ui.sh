@@ -6,7 +6,13 @@
 # Application identity
 APP_NAME="${APP_NAME:-PALPATINE}"
 TAGLINE="${TAGLINE:-Galactic Server Control}"
-VERSION="${VERSION:-v6}"
+if [[ -z "${VERSION:-}" ]]; then
+  if [[ -f "$BASE_DIR/VERSION" ]]; then
+    VERSION="$(<"$BASE_DIR/VERSION")"
+  else
+    VERSION="v0"
+  fi
+fi
 
 # Language (UI_LANG) may be set via config; default to 'fr' for historical reasons
 UI_LANG="${UI_LANG:-fr}"

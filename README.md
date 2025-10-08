@@ -22,6 +22,8 @@ Palpatine is a terminal-based fleet manager written in Bash. It provides a small
     - [Interactive menu](#interactive-menu)
     - [Focus mode](#focus-mode)
     - [Plugins](#plugins)
+    - [Playbooks](#playbooks)
+    - [Automatic updates](#automatic-updates)
   - [Scan JSON output format](#scan-json-output-format)
   - [Security \& best practices](#security--best-practices)
   - [Troubleshooting (common issues)](#troubleshooting-common-issues)
@@ -60,6 +62,12 @@ Clone the repository and make the main script executable:
 git clone https://github.com/tashikomaaa/palpatine.git palpatine
 cd palpatine
 chmod +x palpatine
+```
+
+Optional — install Palpatine system-wide so `palpatine` is on your `PATH`:
+
+```bash
+sudo ./install.sh --prefix /usr/local
 ```
 
 Create your server list files in the repository root. By default Palpatine uses `servers.txt`. You can also use `servers-<group>.txt` and set `GROUP` in config.
@@ -132,8 +140,7 @@ GROUP="prod"
 SSH_USER="root"
 MAX_JOBS=8
 SSH_TIMEOUT=5
-UI_LANG="fr"               # 'fr' or 'en'
-THEME="empire"             # currently visual only
+UI_LANG="en"               # supports en, fr, de, es, pt, it, ru, uk, pl, ja, ko, zh
 DRY_RUN=false
 
 # Scan output options
@@ -141,8 +148,12 @@ SCAN_OUTPUT_JSON=true
 SCAN_OUTPUT_DIR="$HOME/palpatine_scans"   # optional
 SCAN_OUTPUT_FILE=""                       # optional (overrides DIR)
 
-# If true, during scans Palpatine will offer to retry interactively per host when auth fails.
+# Playbook / automation helpers
 SCAN_INTERACTIVE_RETRY=true
+# DISABLE_UPDATE_CHECK=true            # uncomment to opt-out of git update checks
+# UPDATE_CHECK_INTERVAL=86400          # seconds between update checks
+# UPDATE_REMOTE=origin
+# UPDATE_BRANCH=main
 ```
 
 ### Key variables explained
@@ -159,6 +170,9 @@ SCAN_INTERACTIVE_RETRY=true
 * `SCAN_REPORT` — `true` / `false`; enables the Markdown scan report under `logs/reports/`.
 * `SCAN_REPORT_DIR` / `SCAN_REPORT_FILE` — override the default report destination.
 * `SCAN_INTERACTIVE_RETRY` — if `true` and TTY present, when a host reports auth failure during scan, the user is prompted to retry interactively for that host.
+* `DISABLE_UPDATE_CHECK` — set to `true` to skip the automatic git update prompt (defaults to `false`).
+* `UPDATE_CHECK_INTERVAL` — seconds between update checks (default `86400`).
+* `UPDATE_REMOTE` / `UPDATE_BRANCH` — git remote/branch used to check for updates (defaults `origin` / `main`).
 
 ---
 
@@ -217,6 +231,33 @@ The repository ships with two examples:
 * `monitoring.sh` — stream uptime, disk, and memory stats across the fleet.
 
 Document your plugin labels with `L 'plugin.<name>.label'` if you want multilingual support.
+
+### Playbooks
+
+Playbooks chain multiple fleet actions without manual prompts. Create a plain-text file (for example `playbooks/sample.playbook`) with one directive per line:
+
+```
+# comments are ignored
+note: Starting nightly scan
+scan
+run: df -h
+sleep: 5
+note: Finished
+```
+
+Supported directives:
+
+* `scan` — run the fleet scan workflow.
+* `run: <command>` — execute a command across all servers (the playbook fails if any host reports an error or is unreachable).
+* `reboot` / `shutdown` — trigger fleet reboots or shutdowns **without** interactive confirmation (pair with `DRY_RUN=true` for rehearsals).
+* `sleep: <seconds>` — wait between steps.
+* `note: <message>` — log a message via the standard `empire` helper.
+
+Execute with `./palpatine --playbook path/to/file`. Playbooks are mutually exclusive with `--action`, `--focus`, or server list edits so you can run them unattended.
+
+### Automatic updates
+
+When Palpatine is run from a git checkout it periodically checks the configured remote/branch (default `origin/main`) for new commits. If a newer revision is found, it offers to pull the update (`git pull --ff-only`). Set `DISABLE_UPDATE_CHECK=true` to skip this behaviour or adjust `UPDATE_CHECK_INTERVAL` for more/less frequent checks.
 
 ---
 

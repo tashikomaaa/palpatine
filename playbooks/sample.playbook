@@ -1,0 +1,15 @@
+# Sample playbook
+# Lines starting with # are comments. Recognised directives:
+#   scan
+#   run: <command>
+#   reboot
+#   shutdown
+#   sleep: <seconds>
+#   note: <message>
+
+note: Starting sanity scan
+scan
+note: Running disk usage check
+run: df -h
+sleep: 2
+note: Playbook finished

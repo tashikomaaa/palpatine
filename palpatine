@@ -40,6 +40,72 @@ done
 # Load optional plugins (if any register themselves)
 load_plugins
 
+# Remember original arguments for potential restarts
+ORIGINAL_ARGS=("$@")
+
+# Update checking helper (git-based)
+maybe_check_for_updates(){
+  local interval="${UPDATE_CHECK_INTERVAL:-86400}"
+  local remote="${UPDATE_REMOTE:-origin}"
+  local branch="${UPDATE_BRANCH:-main}"
+
+  [[ "${DISABLE_UPDATE_CHECK:-}" == "true" ]] && return
+  command -v git >/dev/null 2>&1 || return
+  [[ -d "$BASE_DIR/.git" ]] || return
+
+  mkdir -p "$LOG_DIR"
+  local stamp_file="$LOG_DIR/.update-check"
+  local now last ts_diff
+  now=$(date +%s 2>/dev/null || echo 0)
+  if [[ -f "$stamp_file" ]]; then
+    last=$(<"$stamp_file")
+    [[ -n "$last" ]] || last=0
+    ts_diff=$(( now - last ))
+    if (( ts_diff < interval )); then
+      return
+    fi
+  fi
+
+  if ! git -C "$BASE_DIR" remote get-url "$remote" >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! git -C "$BASE_DIR" fetch --quiet "$remote" "$branch" >/dev/null 2>&1; then
+    return
+  fi
+
+  printf '%s' "$now" > "$stamp_file"
+
+  local local_rev remote_rev
+  local_rev=$(git -C "$BASE_DIR" rev-parse HEAD 2>/dev/null) || return
+  remote_rev=$(git -C "$BASE_DIR" rev-parse "$remote/$branch" 2>/dev/null) || return
+
+  if [[ "$local_rev" == "$remote_rev" ]]; then
+    return
+  fi
+
+  alert "Update available for Palpatine ($remote/$branch)."
+  local prompt ans
+  prompt=$'\e[94m'"A newer version is available. Update now? [y/N]: "
+  read -rp "${prompt}${COL_RESET}" ans || ans=""
+  if [[ ! "$ans" =~ ^[yY]$ ]]; then
+    alert "Skipping update. Run 'git -C $BASE_DIR pull --ff-only $remote $branch' later."
+    return
+  fi
+
+  if [[ -n $(git -C "$BASE_DIR" status --porcelain) ]]; then
+    failure "Working tree has local changes. Commit or stash before updating."
+    return
+  fi
+
+  if git -C "$BASE_DIR" pull --ff-only "$remote" "$branch"; then
+    victory "Repository updated. Restarting Palpatine..."
+    exec "$0" "${ORIGINAL_ARGS[@]}"
+  else
+    failure "Automatic update failed. Please update manually."
+  fi
+}
+
 # Opening loader (ASCII art banner)
 show_loader(){
   cat <<'EOF'
@@ -127,6 +193,7 @@ CMDLINE=""     # command for run
 FOCUS=""       # focus server (name or index)
 ADD_SERVER=""
 REMOVE_SERVER=""
+PLAYBOOK=""
 
 print_help(){
   cat <<EOF
@@ -135,7 +202,8 @@ $APP_NAME $VERSION - $TAGLINE
 Usage:
   $0 [--group <name>] [--user <sshuser>] [--dry-run]
      [--action <status|run|reboot|shutdown>] [--cmd "<command>"]
-     [--focus "<server|index>"] [--add-server <host>] [--remove-server <host>] [--help]
+     [--focus "<server|index>"] [--add-server <host>] [--remove-server <host>]
+     [--playbook <file>] [--help]
 
 Examples:
   $0 --group prod --action status
@@ -144,6 +212,7 @@ Examples:
   $0 --focus "root@web-01"
   $0 --group prod --add-server "admin@web-04"
   $0 --remove-server "legacy-host"
+  $0 --playbook playbooks/sample.playbook
 EOF
 }
 
@@ -157,11 +226,28 @@ while [[ $# -gt 0 ]]; do
     --focus) FOCUS="$2"; shift ;;
     --add-server) ADD_SERVER="$2"; shift ;;
     --remove-server) REMOVE_SERVER="$2"; shift ;;
+    --playbook) PLAYBOOK="$2"; shift ;;
     -h|--help) print_help; exit 0 ;;
     *) failure "Invalid option: $1"; print_help; exit 2 ;;
   esac
   shift
 done
+
+# Prevent conflicting options
+if [[ -n "$PLAYBOOK" ]]; then
+  if [[ -n "${ACTION:-}" ]]; then
+    failure "--playbook cannot be combined with --action"
+    exit 2
+  fi
+  if [[ -n "${FOCUS:-}" ]]; then
+    failure "--playbook cannot be combined with --focus"
+    exit 2
+  fi
+  if [[ -n "$ADD_SERVER" || -n "$REMOVE_SERVER" ]]; then
+    failure "--playbook cannot be combined with --add-server/--remove-server"
+    exit 2
+  fi
+fi
 
 # ----------------------------
 # Server list management (non-interactive shortcuts)
@@ -192,6 +278,19 @@ fi
 # ----------------------------
 draw_header
 load_servers
+
+maybe_check_for_updates
+
+# ----------------------------
+# Playbook mode
+# ----------------------------
+if [[ -n "$PLAYBOOK" ]]; then
+  if run_playbook "$PLAYBOOK"; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
 
 # ----------------------------
 # If focus requested directly
