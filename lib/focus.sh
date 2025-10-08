@@ -11,31 +11,33 @@ focus_server(){
   while :; do
     draw_header
     draw_block_top
-    draw_center "⚔️ Focus: $server"
+    draw_center "⚔️ $(L 'focus.title'): $server"
     draw_block_bot
 
     local status="offline"
-    if ping -c 1 -W 2 "${server#*@}" &>/dev/null; then
+    if ping_host "${server#*@}"; then
       status="online"
     fi
 
     # Print status line
     if [[ "$status" == "online" ]]; then
-      echo -e " 🧭  Status: ${COL_OK}online${COL_RESET}"
+      echo -e " 🧭  $(L 'focus.status_label'): ${COL_OK}$(L 'focus.status_online')${COL_RESET}"
     else
-      echo -e " 🧭  Status: ${COL_ERR}offline${COL_RESET}"
+      echo -e " 🧭  $(L 'focus.status_label'): ${COL_ERR}$(L 'focus.status_offline')${COL_RESET}"
     fi
 
     draw_line
-    echo -e "${COL_MENU} 1) uptime${COL_RESET}"
-    echo -e "${COL_MENU} 2) execute command${COL_RESET}"
-    echo -e "${COL_MENU} 3) reboot${COL_RESET}"
-    echo -e "${COL_MENU} 4) shutdown${COL_RESET}"
-    echo -e "${COL_MENU} 5) open interactive SSH${COL_RESET}"
-    echo -e "${COL_MENU} 6) return to fleet${COL_RESET}"
+    echo -e "${COL_MENU} 1) $(L 'focus.menu.uptime')${COL_RESET}"
+    echo -e "${COL_MENU} 2) $(L 'focus.menu.run')${COL_RESET}"
+    echo -e "${COL_MENU} 3) $(L 'focus.menu.reboot')${COL_RESET}"
+    echo -e "${COL_MENU} 4) $(L 'focus.menu.shutdown')${COL_RESET}"
+    echo -e "${COL_MENU} 5) $(L 'focus.menu.ssh')${COL_RESET}"
+    echo -e "${COL_MENU} 6) $(L 'focus.menu.back')${COL_RESET}"
     draw_line
 
-    read -rp $'\e[94m'"$(L 'prompt.choice' 2>/dev/null || echo 'Choice:') "'$COL_RESET' sub
+    local menu_prompt
+    menu_prompt=$'\e[94m'"$(L 'prompt.choice_short' 2>/dev/null || echo 'Choice:') "
+    read -rp "${menu_prompt}${COL_RESET}" sub
 
     case "${sub,,}" in
       1)
@@ -46,7 +48,9 @@ focus_server(){
         fi
         ;;
       2)
-        read -rp $'\e[94m'"Command to run: "'$COL_RESET' cmd
+        local cmd_prompt
+        cmd_prompt=$'\e[94m'"$(L 'focus.prompt.command' 2>/dev/null || echo 'Command to run:') "
+        read -rp "${cmd_prompt}${COL_RESET}" cmd
         if [[ -n "${cmd:-}" ]]; then
           run_ssh_cmd "$server" "$cmd"
         else
@@ -85,7 +89,9 @@ select_server(){
   done
   draw_line
 
-  read -rp $'\e[94m'"Num or hostname (e.g. 2 or root@web-01): "'$COL_RESET' pick
+  local pick_prompt
+  pick_prompt=$'\e[94m'"$(L 'focus.prompt.select' 2>/dev/null || echo 'Num or hostname:') "
+  read -rp "${pick_prompt}${COL_RESET}" pick
   if [[ -z "${pick:-}" ]]; then
     alert "$(L 'alert.cancel' 2>/dev/null || echo 'Cancelled')"
     return

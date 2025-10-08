@@ -37,6 +37,9 @@ for file in "$LIB_DIR"/*.sh; do
   source "$file"
 done
 
+# Load optional plugins (if any register themselves)
+load_plugins
+
 # ----------------------------
 # CLI argument parsing
 # ----------------------------
@@ -129,11 +132,15 @@ while :; do
   echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"
   echo -e "${COL_MENU} 4) $(L 'menu.shutdown')${COL_RESET}"
   echo -e "${COL_MENU} 5) $(L 'menu.focus')${COL_RESET}"
+  if plugins_available; then
+    echo -e "${COL_MENU} 6) $(L 'menu.plugins')${COL_RESET}"
+  fi
   draw_line
   echo -e "${COL_MENU} 9) $(L 'menu.quit')${COL_RESET}"
   draw_line
 
-  read -rp $'\e[94m'"$(L 'prompt.choice') " choice
+  choice_prompt=$'\e[94m'"$(L 'prompt.choice') "
+  read -rp "${choice_prompt}${COL_RESET}" choice
   choice="${choice,,}"
   case "$choice" in
     1|"s") action_status; pause ;;
@@ -141,6 +148,13 @@ while :; do
     3|"r") action_reboot_or_shutdown "reboot"; pause ;;
     4) action_reboot_or_shutdown "shutdown"; pause ;;
     5) select_server ;;
+    6|"p")
+      if plugins_available; then
+        show_plugin_menu
+      else
+        alert "$(L 'plugins.none')"
+      fi
+      ;;
     9|"q") victory "$(L 'victory.farewell')"; exit 0 ;;
     *) alert "$(L 'alert.invalid')" ;;
   esac
