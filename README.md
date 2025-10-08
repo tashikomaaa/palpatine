@@ -1,16 +1,4 @@
 # PALPATINE — Galactic Server Control
-                  ⢠⣲⣼⠛⠛⣧⣖⡄⠀⠀
-                ⢠⡲⠙⠁⠀⢰⡆⠀⠈⠋⢖⡄
-                ⣶⡗⠀⠛⢦⣾⣷⣴⠛⠀⢺⣶
-                ⠿⡧⠀⣤⠞⢿⡿⠻⣤⠀⢼⠿
-                ⠘⠵⣠⡀⠀⠸⠇⠀⢀⣤⠮⠃
-                ⠀⠀⠘⠽⢻⣤⣤⡟⠯⠃⠀
-__________        .__                __  .__               
-\______   \_____  |  | ___________ _/  |_|__| ____   ____  
- |     ___/\__  \ |  | \____ \__  \\   __\  |/    \_/ __ \ 
- |    |     / __ \|  |_|  |_> > __ \|  | |  |   |  \  ___/ 
- |____|    (____  /____/   __(____  /__| |__|___|  /\___  >
-                \/     |__|       \/             \/     \/ 
 **Version:** v6 (core-only)
 
 Palpatine is a terminal-based fleet manager written in Bash. It provides a small, auditable, and extensible tool to run commands and manage services across many servers via SSH.
