@@ -40,6 +40,31 @@ done
 # Load optional plugins (if any register themselves)
 load_plugins
 
+# Opening loader (ASCII art banner)
+show_loader(){
+  cat <<'EOF'
+        ____   _    _      _   _ _ _             
+       |  _ \ / \  | | ___| |_(_) | | ___  _ __  
+       | |_) / _ \ | |/ _ \ __| | | |/ _ \| '_ \ 
+       |  __/ ___ \| |  __/ |_| | | | (_) | | | |
+       |_| /_/   \_\_|\___|\__|_|_|_|\___/|_| |_|
+
+             ______________
+            / Galactic HQ \
+           /______________\\
+           |  [_]   [_]   |
+           |              |
+           |   COMMAND    |
+           |______________|
+            /_/ /_/ /_/ /
+
+EOF
+  sleep 2
+  clear
+}
+
+show_loader
+
 # ----------------------------
 # CLI argument parsing
 # ----------------------------
@@ -124,9 +149,6 @@ fi
 # ----------------------------
 while :; do
   draw_header
-  echo -e " 🌌  $(L 'cfg_group') : ${COL_MENU}${GROUP}${COL_RESET}      👤  $(L 'cfg_user') : ${COL_MENU}${SSH_USER}${COL_RESET}"
-  echo -e " 🛰️  $(L 'cfg_jobs') : ${COL_MENU}${#SERVERS[@]}${COL_RESET}"
-  draw_line
   echo -e "${COL_MENU} 1) $(L 'menu.scan')${COL_RESET}"
   echo -e "${COL_MENU} 2) $(L 'menu.run')${COL_RESET}"
   echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"

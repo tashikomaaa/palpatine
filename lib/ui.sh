@@ -12,16 +12,16 @@ VERSION="${VERSION:-v6}"
 UI_LANG="${UI_LANG:-fr}"
 
 # Color palette (favor a modern pink/blue theme with strong contrast)
-COL_RESET="\e[0m"
-COL_HEADER="\e[38;5;213m"   # magenta accent
-COL_SUB="\e[38;5;244m"      # muted grey
-COL_INFO="\e[38;5;81m"      # cyan/blue accent
-COL_OK="\e[1;32m"           # green
-COL_WARN="\e[1;33m"         # yellow
-COL_ERR="\e[1;31m"          # red bold
-COL_MENU="\e[1;97m"         # bold white
-COL_FRAME="\e[38;5;111m"    # frame/border color
-COL_MUTED="\e[38;5;240m"    # divider color
+COL_RESET=$'\e[0m'
+COL_HEADER=$'\e[38;5;213m'   # magenta accent
+COL_SUB=$'\e[38;5;244m'      # muted grey
+COL_INFO=$'\e[38;5;81m'      # cyan/blue accent
+COL_OK=$'\e[1;32m'           # green
+COL_WARN=$'\e[1;33m'         # yellow
+COL_ERR=$'\e[1;31m'          # red bold
+COL_MENU=$'\e[1;97m'         # bold white
+COL_FRAME=$'\e[38;5;111m'    # frame/border color
+COL_MUTED=$'\e[38;5;240m'    # divider color
 
 # ----------------------------
 # Layout helpers

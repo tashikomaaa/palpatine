@@ -9,11 +9,16 @@
 # SCAN_OUTPUT_DIR: directory for scans (optional)
 # SCAN_OUTPUT_FILE: exact file path (optional, overrides DIR)
 # SCAN_INTERACTIVE_RETRY: "true"/"false" - if true, offer to retry interactive auth per host during scan
+# SCAN_REPORT: "true"/"false" (default true) - generate a human-readable scan report
+# SCAN_REPORT_DIR / SCAN_REPORT_FILE: override destination for the report (Markdown)
 
 SCAN_OUTPUT_JSON="${SCAN_OUTPUT_JSON:-true}"
 SCAN_OUTPUT_DIR="${SCAN_OUTPUT_DIR:-}"
 SCAN_OUTPUT_FILE="${SCAN_OUTPUT_FILE:-}"
 SCAN_INTERACTIVE_RETRY="${SCAN_INTERACTIVE_RETRY:-false}"
+SCAN_REPORT="${SCAN_REPORT:-true}"
+SCAN_REPORT_DIR="${SCAN_REPORT_DIR:-}"
+SCAN_REPORT_FILE="${SCAN_REPORT_FILE:-}"
 
 # Ensure we have a LOG_DIR fallback
 : "${LOG_DIR:=$BASE_DIR/logs}"
@@ -47,6 +52,17 @@ action_status(){
     local scan_dir_default="${LOG_DIR}/scans"
     local scan_dir=""
     local scan_file=""
+
+    local report_enabled=false
+    local report_dir_default="${LOG_DIR}/reports"
+    local report_dir=""
+    local report_file=""
+    local report_header_written=false
+
+    local scan_report_norm="${SCAN_REPORT,,}"
+    if [[ -z "${SCAN_REPORT}" || "$scan_report_norm" == "true" ]]; then
+        report_enabled=true
+    fi
     
     if $gen_json; then
         if [[ -n "$SCAN_OUTPUT_FILE" ]]; then
@@ -60,6 +76,27 @@ action_status(){
         fi
         # start JSON array
         printf '%s\n' "[" > "$scan_file"
+    fi
+
+    if $report_enabled; then
+        if [[ -n "$SCAN_REPORT_FILE" ]]; then
+            report_file="$SCAN_REPORT_FILE"
+            report_dir="$(dirname "$report_file")"
+        else
+            report_dir="${SCAN_REPORT_DIR:-$report_dir_default}"
+            report_file="$report_dir/scan-$(date +%Y%m%d_%H%M%S).md"
+        fi
+        mkdir -p "$report_dir"
+        {
+            printf '# %s scan report\n\n' "$(L 'app_name' 2>/dev/null || echo 'Palpatine')"
+            printf -- '- Timestamp: %s\n' "$(iso_timestamp)"
+            printf -- '- Group: %s\n' "$GROUP"
+            printf -- '- User: %s\n' "$SSH_USER"
+            printf -- '- Servers: %s\n\n' "${#SERVERS[@]}"
+            printf '| Host | Ping | SSH | Last command |\n'
+            printf '| --- | --- | --- | --- |\n'
+        } > "$report_file"
+        report_header_written=true
     fi
     
     # allow errors inside the loop without exiting the whole script
@@ -159,18 +196,48 @@ action_status(){
             }
         fi
 
+        if $report_enabled && $report_header_written; then
+            local report_output="$ssh_output"
+            report_output="${report_output//$'\r'/ }"
+            report_output="${report_output//$'\n'/ }"
+            report_output="${report_output//$'\t'/ }"
+            while [[ "$report_output" == *"  "* ]]; do
+                report_output="${report_output//  / }"
+            done
+            if [[ ${#report_output} -gt 120 ]]; then
+                report_output="${report_output:0:117}..."
+            fi
+            printf '| `%s` | %s | %s | %s |\n' "$s" "$ping_stat" "$ssh_stat" "${report_output:--}" >> "$report_file"
+        fi
+
     done
     
     # restore strict mode
     set -e
     
+    if $report_enabled && $report_header_written; then
+        {
+            printf '\n## Summary\n\n'
+            printf -- '- OK: %s\n' "$OK"
+            printf -- '- Failures: %s\n' "$FAIL"
+            printf -- '- Down: %s\n' "$DOWN"
+        } >> "$report_file"
+    fi
+
     if $gen_json; then
         printf '%s\n' "" >> "$scan_file"
         printf '%s\n' "]" >> "$scan_file"
-        empire "$(L 'empire.completed' 2>/dev/null || echo 'Scan finished.') $scan_file"
-    else
-        empire "$(L 'empire.completed' 2>/dev/null || echo 'Scan finished.')"
     fi
+
+    local completion_msg
+    completion_msg="$(L 'empire.completed' 2>/dev/null || echo 'Scan finished.')"
+    if $gen_json; then
+        completion_msg+=" ${scan_file}"
+    fi
+    if $report_enabled && $report_header_written; then
+        completion_msg+=" | report: ${report_file}"
+    fi
+    empire "$completion_msg"
     
     summary_print
 }
@@ -263,4 +330,3 @@ action_reboot_or_shutdown(){
     
     summary_print
 }
-
