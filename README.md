@@ -404,18 +404,3 @@ SCAN_OUTPUT_FILE=""
 SCAN_INTERACTIVE_RETRY=true
 ```
 
----
-
-## License
-
-Recommended: **MIT License** (simple and permissive). Create a `LICENSE` file with the MIT text and your name.
-
-```
-MIT License
-
-Copyright (c) 2025 tashikomaaa
-
-Permission is hereby granted, free of charge, to any person obtaining a copy...
-```
-
----
