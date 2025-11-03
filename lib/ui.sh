@@ -34,17 +34,17 @@ fi
 # Language (UI_LANG) may be set via config; default to 'fr' for historical reasons
 UI_LANG="${UI_LANG:-fr}"
 
-# Color palette (favor a modern pink/blue theme with strong contrast)
+# Color palette - Retro 16-color scheme (ANSI standard)
 COL_RESET=$'\e[0m'
-COL_HEADER=$'\e[38;5;213m'   # magenta accent
-COL_SUB=$'\e[38;5;244m'      # muted grey
-COL_INFO=$'\e[38;5;81m'      # cyan/blue accent
-COL_OK=$'\e[1;32m'           # green
-COL_WARN=$'\e[1;33m'         # yellow
-COL_ERR=$'\e[1;31m'          # red bold
-COL_MENU=$'\e[1;97m'         # bold white
-COL_FRAME=$'\e[38;5;111m'    # frame/border color
-COL_MUTED=$'\e[38;5;240m'    # divider color
+COL_HEADER=$'\e[1;36m'       # bright cyan (bold)
+COL_SUB=$'\e[0;37m'          # white
+COL_INFO=$'\e[0;36m'         # cyan
+COL_OK=$'\e[0;32m'           # green
+COL_WARN=$'\e[0;33m'         # yellow
+COL_ERR=$'\e[0;31m'          # red
+COL_MENU=$'\e[1;37m'         # bold white
+COL_FRAME=$'\e[0;37m'        # white
+COL_MUTED=$'\e[0;90m'        # dark gray
 
 # Localization overrides for additional languages
 declare -A L_RU=(
@@ -90,6 +90,7 @@ declare -A L_RU=(
   [focus.menu.back]="Вернуться к флоту"
   [focus.prompt.command]="Команда для выполнения:"
   [focus.prompt.select]="Номер или хост (например 2 или root@web-01):"
+  [focus.systems_available]="Доступные системы:"
   [plugins.title]="Отсек плагинов"
   [plugins.prompt.choice]="Выберите плагин (0 чтобы вернуться):"
   [plugins.none]="Плагины не загружены."
@@ -142,6 +143,7 @@ declare -A L_DE=(
   [focus.menu.back]="Zur Flotte zurückkehren"
   [focus.prompt.command]="Auszuführender Befehl:"
   [focus.prompt.select]="Nummer oder Host (z. B. 2 oder root@web-01):"
+  [focus.systems_available]="Verfügbare Systeme:"
   [plugins.title]="Plugin-Hangar"
   [plugins.prompt.choice]="Plugin wählen (0 zum Zurückkehren):"
   [plugins.none]="Keine Plugins geladen."
@@ -194,6 +196,7 @@ declare -A L_ES=(
   [focus.menu.back]="Volver a la flota"
   [focus.prompt.command]="Comando a ejecutar:"
   [focus.prompt.select]="Número u host (ej. 2 o root@web-01):"
+  [focus.systems_available]="Sistemas disponibles:"
   [plugins.title]="Bahía de complementos"
   [plugins.prompt.choice]="Elige un complemento (0 para volver):"
   [plugins.none]="No hay complementos cargados."
@@ -246,6 +249,7 @@ declare -A L_PT=(
   [focus.menu.back]="Voltar à frota"
   [focus.prompt.command]="Comando a executar:"
   [focus.prompt.select]="Número ou host (ex.: 2 ou root@web-01):"
+  [focus.systems_available]="Sistemas disponíveis:"
   [plugins.title]="Hangar de plugins"
   [plugins.prompt.choice]="Escolha um plugin (0 para voltar):"
   [plugins.none]="Nenhum plugin carregado."
@@ -298,6 +302,7 @@ declare -A L_IT=(
   [focus.menu.back]="Torna alla flotta"
   [focus.prompt.command]="Comando da eseguire:"
   [focus.prompt.select]="Numero o host (es. 2 o root@web-01):"
+  [focus.systems_available]="Sistemi disponibili:"
   [plugins.title]="Hangar dei plugin"
   [plugins.prompt.choice]="Seleziona un plugin (0 per tornare):"
   [plugins.none]="Nessun plugin caricato."
@@ -350,6 +355,7 @@ declare -A L_JA=(
   [focus.menu.back]="艦隊に戻る"
   [focus.prompt.command]="実行するコマンド:"
   [focus.prompt.select]="番号またはホスト (例: 2 または root@web-01):"
+  [focus.systems_available]="利用可能なシステム:"
   [plugins.title]="プラグインハンガー"
   [plugins.prompt.choice]="プラグインを選択 (0 で戻る):"
   [plugins.none]="読み込まれたプラグインはありません。"
@@ -402,6 +408,7 @@ declare -A L_ZH=(
   [focus.menu.back]="返回舰队"
   [focus.prompt.command]="要执行的命令:"
   [focus.prompt.select]="编号或主机（例如 2 或 root@web-01）："
+  [focus.systems_available]="可用系统："
   [plugins.title]="插件机库"
   [plugins.prompt.choice]="选择插件（0 返回）："
   [plugins.none]="未加载任何插件。"
@@ -454,6 +461,7 @@ declare -A L_KO=(
   [focus.menu.back]="함대로 돌아가기"
   [focus.prompt.command]="실행할 명령:"
   [focus.prompt.select]="번호 또는 호스트 (예: 2 또는 root@web-01):"
+  [focus.systems_available]="사용 가능한 시스템:"
   [plugins.title]="플러그인 격납고"
   [plugins.prompt.choice]="플러그인을 선택하세요 (0은 돌아가기):"
   [plugins.none]="로드된 플러그인이 없습니다."
@@ -506,6 +514,7 @@ declare -A L_UK=(
   [focus.menu.back]="Повернутися до флоту"
   [focus.prompt.command]="Команда для виконання:"
   [focus.prompt.select]="Номер або хост (наприклад 2 чи root@web-01):"
+  [focus.systems_available]="Доступні системи:"
   [plugins.title]="Ангар плагінів"
   [plugins.prompt.choice]="Оберіть плагін (0 для повернення):"
   [plugins.none]="Плагіни не завантажено."
@@ -558,6 +567,7 @@ declare -A L_PL=(
   [focus.menu.back]="Wróć do floty"
   [focus.prompt.command]="Polecenie do wykonania:"
   [focus.prompt.select]="Numer lub host (np. 2 lub root@web-01):"
+  [focus.systems_available]="Dostępne systemy:"
   [plugins.title]="Hangar wtyczek"
   [plugins.prompt.choice]="Wybierz wtyczkę (0 aby wrócić):"
   [plugins.none]="Brak załadowanych wtyczek."
@@ -613,17 +623,18 @@ __tr_en(){
     focus.menu.back) echo "Return to fleet" ;;
     focus.prompt.command) echo "Command to run:" ;;
     focus.prompt.select) echo "Num or hostname (e.g. 2 or root@web-01):" ;;
+    focus.systems_available) echo "Systems available:" ;;
     plugins.title) echo "Plugin hangar" ;;
     plugins.prompt.choice) echo "Select a plugin (0 to return):" ;;
     plugins.none) echo "No plugins loaded." ;;
     plugin.backup.label) echo "Imperial backups" ;;
-    plugin.backup.title) echo "📦 Imperial backup module" ;;
+    plugin.backup.title) echo "[BAK] Imperial backup module" ;;
     plugin.backup.option_etc) echo "Backup /etc on all servers" ;;
     plugin.backup.option_www) echo "Backup /var/www on all servers" ;;
     plugin.backup.log_etc) echo "Backing up /etc" ;;
     plugin.backup.log_www) echo "Backing up /var/www" ;;
     plugin.monitoring.label) echo "Imperial monitoring" ;;
-    plugin.monitoring.title) echo "🛰️ Imperial monitoring" ;;
+    plugin.monitoring.title) echo "[MON] Imperial monitoring" ;;
     msg.no_servers) echo "No servers found." ;;
     alert.invalid) echo "Invalid choice." ;;
     alert.cancel) echo "Operation cancelled." ;;
@@ -747,6 +758,7 @@ L(){
         focus.menu.back) echo "Retour à la flotte" ;;
         focus.prompt.command) echo "Commande à exécuter :" ;;
         focus.prompt.select) echo "Numéro ou hôte (ex. 2 ou root@web-01) :" ;;
+        focus.systems_available) echo "Systèmes disponibles :" ;;
         plugins.title) echo "Hangar à plugins" ;;
         plugins.prompt.choice) echo "Choisissez un plugin (0 pour revenir) :" ;;
         plugins.none) echo "Aucun plugin chargé." ;;
@@ -808,19 +820,19 @@ L(){
 draw_line(){
   local width
   width=$(get_term_width)
-  printf "%b%s%b\n" "$COL_MUTED" "$(repeat_char '─' "$width")" "$COL_RESET"
+  printf "%b%s%b\n" "$COL_MUTED" "$(repeat_char '-' "$width")" "$COL_RESET"
 }
 
 draw_block_top(){
   local width
   width=$(get_term_width)
-  printf "%b╭%s╮%b\n" "$COL_FRAME" "$(repeat_char '─' $((width-2)))" "$COL_RESET"
+  printf "%b+%s+%b\n" "$COL_FRAME" "$(repeat_char '-' $((width-2)))" "$COL_RESET"
 }
 
 draw_block_bot(){
   local width
   width=$(get_term_width)
-  printf "%b╰%s╯%b\n" "$COL_FRAME" "$(repeat_char '─' $((width-2)))" "$COL_RESET"
+  printf "%b+%s+%b\n" "$COL_FRAME" "$(repeat_char '-' $((width-2)))" "$COL_RESET"
 }
 
 draw_center(){
@@ -834,14 +846,14 @@ draw_center(){
   fi
   padding=$(( (inner - ${#plain}) / 2 ))
   remaining=$(( inner - ${#plain} - padding ))
-  printf "%b│%s%s%s│%b\n" \
+  printf "%b|%s%s%s|%b\n" \
     "$COL_FRAME" "$(repeat_char ' ' "$padding")" "$text" "$(repeat_char ' ' "$remaining")" "$COL_RESET"
 }
 
 draw_section_title(){
   local width
   width=$(get_term_width)
-  printf "%b%s%b\n" "$COL_INFO" "$(pad_line " ✨ $1" "$width")" "$COL_RESET"
+  printf "%b%s%b\n" "$COL_INFO" "$(pad_line " >> $1" "$width")" "$COL_RESET"
 }
 
 draw_menu_option(){
@@ -862,33 +874,97 @@ draw_stat_row(){
   echo -e "$line"
 }
 
-# Header that shows active configuration snapshot
-draw_header(){
-  clear
-  local width border
+# k9s-style status bar (top)
+draw_status_bar(){
+  local width
   width=$(get_term_width)
-  border="$(repeat_char '━' "$width")"
-  printf "%b%s%b\n" "$COL_FRAME" "$border" "$COL_RESET"
-  printf "%b%s%b\n" "$COL_HEADER" "$(pad_line " $(L 'app_name')  ${VERSION}" "$width")" "$COL_RESET"
-  printf "%b%s%b\n" "$COL_INFO" "$(pad_line " $(L 'tagline')" "$width")" "$COL_RESET"
-  printf "%b%s%b\n" "$COL_FRAME" "$border" "$COL_RESET"
-  echo -e "${COL_SUB}$(L 'quote')${COL_RESET}\n"
-  echo -e "${COL_SUB}$(L 'cfg_active')${COL_RESET}"
 
   local loaded=0
   if declare -p SERVERS >/dev/null 2>&1; then
     loaded=${#SERVERS[@]}
   fi
 
-  draw_stat_row "🌌 $(L 'cfg_group')" "${COL_MENU}${GROUP}${COL_RESET}" \
-                "👤 $(L 'cfg_user')" "${COL_MENU}${SSH_USER}${COL_RESET}"
-  draw_stat_row "🛰️ $(L 'cfg_jobs')" "${COL_MENU}${loaded}${COL_RESET}" \
-                "⏱️ $(L 'cfg_timeout')" "${COL_MENU}${SSH_TIMEOUT}s${COL_RESET}"
+  local ctx=" Context: ${COL_MENU}${GROUP}${COL_RESET}"
+  local user=" User: ${COL_MENU}${SSH_USER}${COL_RESET}"
+  local targets=" Targets: ${COL_MENU}${loaded}${COL_RESET}"
+  local timeout=" Timeout: ${COL_MENU}${SSH_TIMEOUT}s${COL_RESET}"
+
+  printf "%b" "$COL_INFO"
+  printf "%-${width}s" "${ctx}${user}${targets}${timeout}"
+  printf "%b\n" "$COL_RESET"
+}
+
+# k9s-style header
+draw_header(){
+  clear
+  local width
+  width=$(get_term_width)
+
+  # Top banner with TIE Fighter
+  printf "%b" "$COL_HEADER"
+  printf "%${width}s\n" | tr ' ' '='
+  echo "     .-|~|-.        PALPATINE ${VERSION} - Imperial Fleet Control System"
+  echo "  .-[=======]-.     \"Long Live The Empire\""
+  echo "     '-|~|-'  "
+  printf "%${width}s\n" | tr ' ' '='
+  printf "%b\n" "$COL_RESET"
+
+  # Status bar
+  draw_status_bar
   draw_line
 }
 
-# Branded logging wrappers
-empire(){ echo -e "${COL_INFO}[$(L 'app_name')]${COL_RESET} $*"; }
-victory(){ echo -e "${COL_OK}[✓]${COL_RESET} $*"; }
-alert(){ echo -e "${COL_WARN}[!]${COL_RESET} $*"; }
-failure(){ echo -e "${COL_ERR}[✖]${COL_RESET} $*"; }
+# k9s-style command menu (bottom)
+draw_command_menu(){
+  local width
+  width=$(get_term_width)
+  draw_line
+  printf "%b" "$COL_SUB"
+  echo " <1> Scan Fleet | <2> Run Command | <3> Reboot | <4> Shutdown | <5> Focus | <6> Plugins | <q> Quit"
+  printf "%b" "$COL_RESET"
+  draw_line
+}
+
+# k9s-style server table
+draw_server_table(){
+  local title="${1:-IMPERIAL FLEET ROSTER}"
+
+  echo ""
+  printf "%b" "$COL_INFO"
+  echo " $title"
+  printf "%b" "$COL_RESET"
+  draw_line
+
+  # Table header
+  printf "%b" "$COL_MENU"
+  printf " %-4s | %-40s | %-10s | %-15s\n" "ID" "TARGET" "STATUS" "TAGS"
+  printf "%b" "$COL_RESET"
+  draw_line
+
+  # Table rows
+  local i=1
+  for s in "${SERVERS[@]}"; do
+    local tags="${SERVER_TAGS[$s]:-none}"
+    [[ -z "$tags" ]] && tags="none"
+
+    # Ping status indicator
+    local status_col="$COL_MUTED"
+    local status_txt="UNKNOWN"
+
+    printf " %b%-4s%b | %-40s | %b%-10s%b | %-15s\n" \
+      "$COL_SUB" "$i" "$COL_RESET" \
+      "$s" \
+      "$status_col" "$status_txt" "$COL_RESET" \
+      "$tags"
+    ((i++))
+  done
+
+  draw_line
+  echo ""
+}
+
+# Branded logging wrappers (Star Wars Imperial style)
+empire(){ echo -e "${COL_INFO}[IMPERIAL]${COL_RESET} $*"; }
+victory(){ echo -e "${COL_OK}[OK]${COL_RESET} $*"; }
+alert(){ echo -e "${COL_WARN}[WARNING]${COL_RESET} $*"; }
+failure(){ echo -e "${COL_ERR}[FAILED]${COL_RESET} $*"; }

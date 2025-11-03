@@ -353,38 +353,43 @@ if [[ -n "${ACTION:-}" ]]; then
 fi
 
 # ----------------------------
-# Interactive TUI main loop
+# Interactive TUI main loop (k9s-style)
 # ----------------------------
 while :; do
   draw_header
-  echo -e "${COL_MENU} 1) $(L 'menu.scan')${COL_RESET}"
-  echo -e "${COL_MENU} 2) $(L 'menu.run')${COL_RESET}"
-  echo -e "${COL_MENU} 3) $(L 'menu.reboot')${COL_RESET}"
-  echo -e "${COL_MENU} 4) $(L 'menu.shutdown')${COL_RESET}"
-  echo -e "${COL_MENU} 5) $(L 'menu.focus')${COL_RESET}"
 
+  # Display server table (k9s style)
+  draw_server_table "IMPERIAL FLEET ROSTER"
+
+  # Dynamic menu options
   option_plugin=0
   option_add=0
   option_remove=0
-  next_option=6
+  next_option=7
 
   if plugins_available; then
     option_plugin=$next_option
-    echo -e "${COL_MENU} ${option_plugin}) $(L 'menu.plugins')${COL_RESET}"
     ((next_option++))
   fi
 
   option_add=$next_option
-  echo -e "${COL_MENU} ${option_add}) $(L 'menu.add_server')${COL_RESET}"
   ((next_option++))
 
   option_remove=$next_option
-  echo -e "${COL_MENU} ${option_remove}) $(L 'menu.remove_server')${COL_RESET}"
-  draw_line
-  draw_menu_option "9" "🚪" "$(L 'menu.quit')" "(q)"
-  draw_line
 
-  choice_prompt=$'\e[94m'"$(L 'prompt.choice') "
+  # Command menu at bottom (k9s style)
+  draw_command_menu
+
+  echo ""
+  printf " ${COL_SUB}Additional commands:${COL_RESET}\n"
+  if (( option_plugin > 0 )); then
+    echo -e " ${COL_MENU}<${option_plugin}> $(L 'menu.plugins')${COL_RESET}  ${COL_MENU}<${option_add}> $(L 'menu.add_server')${COL_RESET}  ${COL_MENU}<${option_remove}> $(L 'menu.remove_server')${COL_RESET}"
+  else
+    echo -e " ${COL_MENU}<${option_add}> $(L 'menu.add_server')${COL_RESET}  ${COL_MENU}<${option_remove}> $(L 'menu.remove_server')${COL_RESET}"
+  fi
+  echo ""
+
+  choice_prompt=$'\e[36m'"[COMMAND]> "
   read -rp "${choice_prompt}${COL_RESET}" choice
   choice="${choice,,}"
   case "$choice" in

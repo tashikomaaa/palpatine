@@ -39,6 +39,7 @@ _json_safe() {
 # action_status: scan the fleet, optionally produce JSON output
 # ---------------------------
 action_status(){
+    audit_log "fleet_scan" "all_servers" "scan" "initiated"
     summary_init
     empire "$(L 'empire.scan' 2>/dev/null || echo 'Scanning the fleet...')"
     
@@ -105,7 +106,7 @@ action_status(){
     local first=true
     for s in "${SERVERS[@]}"; do
         draw_line
-        printf ' 🛰️  System: %s\n' "$s"
+        printf ' [>>] Target: %s\n' "$s"
         local hostpart="${s#*@}"
         local ping_stat="failed"
         local ssh_stat="not_attempted"
@@ -118,7 +119,11 @@ action_status(){
             echo "   $(L 'status.ping_ok' 2>/dev/null || echo 'Ping: OK')"
             # Non-interactive SSH attempt for uptime
             ssh_exit=0
-            ssh_output="$(ssh "${SSH_OPTS[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || ssh_exit=$?
+            local ssh_opts_scan=("${SSH_OPTS[@]}")
+            build_ssh_opts "$s" ssh_opts_scan
+            local ssh_host_clean
+            ssh_host_clean="$(get_host_without_port "$(host_for "$s")")"
+            ssh_output="$(ssh "${ssh_opts_scan[@]}" "$ssh_host_clean" -- "uptime -p" 2>&1)" || ssh_exit=$?
 
             if (( ssh_exit == 0 )); then
                 ssh_stat="ok"
@@ -128,11 +133,13 @@ action_status(){
                     # If interactive retry is enabled and TTY present, offer interactive retry
                     if [[ -t 0 && "${SCAN_INTERACTIVE_RETRY,,}" == "true" ]]; then
                         local prompt ans
-                        prompt=$'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $s. $(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:') "
-                        read -rp "${prompt}${COL_RESET}" ans || ans=""
+                        prompt=$'\e[94m'"$(L 'prompt.password_q' 2>/dev/null || echo 'Password required for') $s. $(L 'prompt.retry_interactive' 2>/dev/null || echo 'Retry interactively? [o/N]:') ${COL_RESET}"
+                        read -rp "${prompt}" ans || ans=""
                         if [[ "$ans" =~ ^[oOyY]$ ]]; then
                             # interactive retry using SSH_OPTS_INTERACTIVE
-                            ssh_output="$(ssh "${SSH_OPTS_INTERACTIVE[@]}" "$(host_for "$s")" -- "uptime -p" 2>&1)" || ssh_exit=$?
+                            local ssh_opts_interactive=("${SSH_OPTS_INTERACTIVE[@]}")
+                            build_ssh_opts "$s" ssh_opts_interactive
+                            ssh_output="$(ssh "${ssh_opts_interactive[@]}" "$ssh_host_clean" -- "uptime -p" 2>&1)" || ssh_exit=$?
                             if (( ssh_exit == 0 )); then
                                 ssh_stat="ok"
                             elif echo "$ssh_output" | grep -qiE "permission denied|authentication failed|no authentication methods available"; then
@@ -247,6 +254,7 @@ action_status(){
 # ---------------------------
 run_command_parallel(){
     local cmdline="$1"
+    audit_log "parallel_command" "all_servers" "$cmdline" "initiated"
     empire "$(L 'empire.deploy' 2>/dev/null || echo 'Deploying:') ${COL_MENU}$cmdline${COL_RESET}"
     summary_init
     set +e
@@ -255,7 +263,7 @@ run_command_parallel(){
         wait_for_slot pids
         (
             draw_line
-            printf ' 🛰️  System: %s\n' "$s"
+            printf ' [>>] Target: %s\n' "$s"
             if ping_host "${s#*@}"; then
                 run_ssh_cmd "$s" "$cmdline" && summary_update ok || summary_update fail
             else
@@ -286,8 +294,9 @@ action_run_command(){
 action_reboot_or_shutdown(){
     local op="$1"
     local skip_confirm="${2:-}"
+    audit_log "fleet_${op}" "all_servers" "${op}" "initiated"
     local verb prompt_text c
-    
+
     # Choose human-readable verb (localized)
     if [[ "$op" == "reboot" ]]; then
         verb="$(L 'menu.reboot' 2>/dev/null || echo 'reboot the fleet')"
@@ -319,7 +328,7 @@ action_reboot_or_shutdown(){
         wait_for_slot pids
         (
             draw_line
-            printf ' 🛰️  System: %s\n' "$s"
+            printf ' [>>] Target: %s\n' "$s"
             if ping_host "${s#*@}"; then
                 if [[ "$op" == "reboot" ]]; then
                     run_ssh_cmd "$s" "sudo /sbin/shutdown -r now" && summary_update ok || summary_update fail

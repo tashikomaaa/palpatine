@@ -1,1 +1,29 @@
-root@0.0.0.0
+# Palpatine Server List Example
+# Format: user@hostname[:port] [tags=tag1,tag2,...]
+#
+# Examples:
+# - Basic entry:        root@192.168.1.10
+# - Custom SSH port:    admin@192.168.1.20:2222
+# - With tags:          root@web-01 tags=web,prod,frontend
+# - All combined:       deploy@api-server:2222 tags=api,prod,backend
+#
+# Tag Filtering:
+# Use TAGS_FILTER environment variable to filter servers by tags:
+#   TAGS_FILTER=web,prod palpatine --run "uptime"
+#
+
+# Production web servers
+root@192.168.1.10 tags=web,prod,frontend
+root@192.168.1.11:2222 tags=web,prod,frontend
+
+# API backends
+admin@192.168.1.20 tags=api,prod,backend
+admin@192.168.1.21:2222 tags=api,prod,backend
+
+# Database servers
+postgres@192.168.1.30 tags=database,prod
+postgres@192.168.1.31:5432 tags=database,prod
+
+# Development/staging
+deploy@192.168.1.100 tags=dev,staging
+deploy@192.168.1.101:2222 tags=dev,staging

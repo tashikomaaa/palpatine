@@ -28,7 +28,7 @@ focus_server(){
   while :; do
     draw_header
     draw_block_top
-    draw_center "⚔️ $(L 'focus.title'): $server"
+    draw_center "[==] $(L 'focus.title'): $server"
     draw_block_bot
 
     local status="offline"
@@ -38,9 +38,9 @@ focus_server(){
 
     # Print status line
     if [[ "$status" == "online" ]]; then
-      echo -e " 🧭  $(L 'focus.status_label'): ${COL_OK}$(L 'focus.status_online')${COL_RESET}"
+      echo -e " [>]  $(L 'focus.status_label'): ${COL_OK}$(L 'focus.status_online')${COL_RESET}"
     else
-      echo -e " 🧭  $(L 'focus.status_label'): ${COL_ERR}$(L 'focus.status_offline')${COL_RESET}"
+      echo -e " [X]  $(L 'focus.status_label'): ${COL_ERR}$(L 'focus.status_offline')${COL_RESET}"
     fi
 
     draw_line
@@ -98,7 +98,7 @@ focus_server(){
 # select_server: present the list of servers and let user pick by number or hostname.
 select_server(){
   draw_line
-  echo " ⚙️  Systems available:"
+  echo " [*]  $(L 'focus.systems_available' 2>/dev/null || echo 'Systems available:')"
   local i=1
   for s in "${SERVERS[@]}"; do
     echo "  [$i] $s"
