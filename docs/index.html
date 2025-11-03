@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Palpatine - Galactic Server Control. A terminal-based fleet manager for SSH server orchestration.">
+    <meta name="keywords" content="SSH, Fleet Management, Bash, DevOps, Server Management, Automation, SysAdmin">
+    <meta name="author" content="Palpatine Contributors">
+    <title>Palpatine - Galactic Server Control</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">👑</span>
+                <span class="brand-name">PALPATINE</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#contributing">Contributing</a></li>
+                <li><a href="https://github.com/tashikomaaa/palpatine" target="_blank" class="github-link">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    GitHub
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-icon">👑</span>
+                    Galactic Server Control
+                </div>
+                <h1 class="hero-title">
+                    <span class="gradient-text">PALPATINE</span>
+                </h1>
+                <p class="hero-subtitle">Command your server fleet with absolute power</p>
+                <p class="hero-description">
+                    A pure Bash terminal-based fleet manager for SSH server orchestration. Execute commands across hundreds of servers,
+                    automate deployments with playbooks, and maintain control of your infrastructure—all from the command line.
+                </p>
+                <div class="hero-badges">
+                    <img src="https://img.shields.io/badge/bash-5.0+-green.svg" alt="Bash">
+                    <img src="https://img.shields.io/badge/license-GPL--3.0-black.svg" alt="License">
+                    <img src="https://img.shields.io/badge/ssh-required-blue.svg" alt="SSH">
+                </div>
+                <div class="hero-actions">
+                    <a href="#installation" class="btn btn-primary">Install Palpatine</a>
+                    <a href="https://github.com/tashikomaaa/palpatine" target="_blank" class="btn btn-secondary">View Source</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">palpatine@control-station</span>
+                    </div>
+                    <div class="terminal-body">
+<pre><code><span class="prompt">emperor@control</span> <span class="path">~</span> <span class="dollar">$</span> ./palpatine --action scan
+
+<span class="info">════════════════════════════════════════════════════════</span>
+<span class="header">     PALPATINE — Galactic Server Control v1.0</span>
+<span class="info">════════════════════════════════════════════════════════</span>
+
+<span class="success">✓</span> Scanning <span class="highlight">24</span> servers in fleet <span class="highlight">production</span>...
+
+<span class="host">root@web-01.galaxy.net</span>    <span class="success">✓ ONLINE</span>  <span class="dim">up 47 days</span>
+<span class="host">root@web-02.galaxy.net</span>    <span class="success">✓ ONLINE</span>  <span class="dim">up 47 days</span>
+<span class="host">root@api-01.galaxy.net</span>    <span class="success">✓ ONLINE</span>  <span class="dim">up 120 days</span>
+<span class="host">root@db-01.galaxy.net</span>     <span class="success">✓ ONLINE</span>  <span class="dim">up 365 days</span>
+
+<span class="info">════════════════════════════════════════════════════════</span>
+<span class="result">Fleet Status: <span class="success">24/24 OPERATIONAL</span></span>
+<span class="info">════════════════════════════════════════════════════════</span>
+</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="overview" class="section">
+            <div class="container">
+                <h2 class="section-title">Why Palpatine?</h2>
+                <p class="section-intro">
+                    Manage server fleets with the simplicity of Bash and the power of parallel SSH execution.
+                    No agents, no daemons—just pure SSH and coreutils.
+                </p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Parallel Execution</h3>
+                        <p>Run commands across hundreds of servers simultaneously with configurable concurrency limits.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Zero Dependencies</h3>
+                        <p>Pure Bash with only SSH and coreutils required. No Python, no Ruby, no Go—just shell.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📜</div>
+                        <h3>Playbook Automation</h3>
+                        <p>Chain multiple fleet actions with playbooks. Scan, deploy, reboot—all scripted and repeatable.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔌</div>
+                        <h3>Plugin System</h3>
+                        <p>Extend with custom plugins written in Bash. Create workflows for backups, monitoring, and more.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Multilingual UI</h3>
+                        <p>Interface available in 12 languages including English, French, German, Spanish, Japanese, and more.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>JSON Output</h3>
+                        <p>Export scan results to JSON for integration with monitoring tools and custom dashboards.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Core Features</h2>
+
+                <div class="features-detailed">
+                    <div class="feature-detail">
+                        <h3>🎮 Interactive TUI Menu</h3>
+                        <p>Beautiful terminal UI for fleet operations. Scan systems, execute commands, focus on individual servers,
+                        manage backups, and more—all from an intuitive menu system.</p>
+                        <div class="feature-tags">
+                            <span class="tag">Interactive</span>
+                            <span class="tag">User-Friendly</span>
+                            <span class="tag">Keyboard-Driven</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h3>⚙️ CLI Mode</h3>
+                        <p>Complete non-interactive mode for automation and cron jobs. All operations available via command-line flags.</p>
+                        <pre><code>./palpatine --group prod --action status
+./palpatine --action run --cmd "apt update && apt upgrade -y"
+./palpatine --playbook nightly-backup.playbook</code></pre>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h3>🎯 Focus Mode</h3>
+                        <p>Zoom in on a single server for detailed control. Run commands, check uptime, reboot, or open an interactive SSH shell.</p>
+                        <div class="feature-tags">
+                            <span class="tag">Per-Server Control</span>
+                            <span class="tag">SSH Integration</span>
+                            <span class="tag">Quick Actions</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h3>📜 Playbook System</h3>
+                        <p>Automate complex workflows with plain-text playbooks. Chain scans, commands, reboots, and delays.</p>
+                        <pre><code># nightly-maintenance.playbook
+note: Starting maintenance window
+scan
+run: apt update
+sleep: 5
+run: apt upgrade -y
+run: apt autoremove -y
+reboot
+note: Maintenance complete</code></pre>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h3>🔌 Plugin Architecture</h3>
+                        <p>Bundled plugins for common operations, or write your own in Bash:</p>
+                        <ul>
+                            <li><strong>backup.sh</strong> - Fleet-wide tar backups of /etc or /var/www</li>
+                            <li><strong>monitoring.sh</strong> - Stream uptime, disk, and memory stats</li>
+                            <li>Custom plugins with <code>register_plugin "id" "Label" handler_fn</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h3>📊 JSON & Markdown Reports</h3>
+                        <p>Scan output as structured JSON with ISO-8601 timestamps. Optional Markdown reports for team sharing.</p>
+                        <div class="feature-tags">
+                            <span class="tag">Machine-Readable</span>
+                            <span class="tag">jq Compatible</span>
+                            <span class="tag">Shareable</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="installation" class="section">
+            <div class="container">
+                <h2 class="section-title">Installation</h2>
+
+                <div class="install-options">
+                    <div class="install-option">
+                        <h3>Quick Start</h3>
+                        <pre><code>git clone https://github.com/tashikomaaa/palpatine.git
+cd palpatine
+chmod +x palpatine
+./palpatine</code></pre>
+                    </div>
+
+                    <div class="install-option">
+                        <h3>System-Wide Installation</h3>
+                        <pre><code>git clone https://github.com/tashikomaaa/palpatine.git
+cd palpatine
+sudo ./install.sh --prefix /usr/local
+palpatine</code></pre>
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Requirements</h3>
+                <div class="requirements">
+                    <div class="requirement">
+                        <strong>Bash:</strong> ≥4.0
+                        <p>Modern bash with associative arrays</p>
+                    </div>
+                    <div class="requirement">
+                        <strong>SSH:</strong> OpenSSH client
+                        <p>SSH key authentication recommended</p>
+                    </div>
+                    <div class="requirement">
+                        <strong>Coreutils:</strong> Standard tools
+                        <p>cat, grep, sed, awk, etc.</p>
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Server List Setup</h3>
+                <p>Create <code>servers.txt</code> or <code>servers-&lt;group&gt;.txt</code> in the project directory:</p>
+                <pre><code>root@192.168.1.10
+admin@192.168.1.11
+web-01.example.com
+web-02.example.com
+db-primary.example.com</code></pre>
+            </div>
+        </section>
+
+        <section id="usage" class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Usage</h2>
+
+                <h3 class="subsection-title">Interactive Mode</h3>
+                <p>Launch without arguments for the main menu:</p>
+                <pre><code>./palpatine</code></pre>
+                <p class="usage-description">Navigate with keyboard to scan systems, execute commands, reboot fleet, manage plugins, and more.</p>
+
+                <h3 class="subsection-title">CLI Mode</h3>
+                <div class="cli-examples">
+                    <div class="cli-example">
+                        <h4>Scan Fleet Status</h4>
+                        <pre><code>./palpatine --group prod --action status</code></pre>
+                    </div>
+
+                    <div class="cli-example">
+                        <h4>Execute Command Across Fleet</h4>
+                        <pre><code>./palpatine --action run --cmd "df -h"
+./palpatine --action run --cmd "systemctl restart nginx"</code></pre>
+                    </div>
+
+                    <div class="cli-example">
+                        <h4>Reboot with Dry-Run</h4>
+                        <pre><code>./palpatine --action reboot --dry-run</code></pre>
+                    </div>
+
+                    <div class="cli-example">
+                        <h4>Focus on Server</h4>
+                        <pre><code>./palpatine --focus "root@web-01"
+./palpatine --focus 2  # Server number from list</code></pre>
+                    </div>
+
+                    <div class="cli-example">
+                        <h4>Run Playbook</h4>
+                        <pre><code>./palpatine --playbook playbooks/nightly-backup.playbook</code></pre>
+                    </div>
+                </div>
+
+                <h3 class="subsection-title">Playbook Directives</h3>
+                <table class="playbook-table">
+                    <thead>
+                        <tr>
+                            <th>Directive</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>scan</code></td>
+                            <td>Run fleet scan workflow</td>
+                        </tr>
+                        <tr>
+                            <td><code>run: &lt;command&gt;</code></td>
+                            <td>Execute command across all servers</td>
+                        </tr>
+                        <tr>
+                            <td><code>reboot</code></td>
+                            <td>Reboot all servers (no confirmation)</td>
+                        </tr>
+                        <tr>
+                            <td><code>shutdown</code></td>
+                            <td>Shutdown all servers (no confirmation)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sleep: &lt;seconds&gt;</code></td>
+                            <td>Wait between steps</td>
+                        </tr>
+                        <tr>
+                            <td><code>note: &lt;message&gt;</code></td>
+                            <td>Log message to output</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="configuration" class="section">
+            <div class="container">
+                <h2 class="section-title">Configuration</h2>
+
+                <p>Palpatine reads config files in this order (later overrides earlier):</p>
+                <ol class="config-order">
+                    <li><code>/etc/palpatine.conf</code></li>
+                    <li><code>~/.palpatine.conf</code></li>
+                    <li><code>./.palpatine.conf</code></li>
+                </ol>
+
+                <h3 class="subsection-title">Example Configuration</h3>
+                <pre><code># ~/.palpatine.conf
+GROUP="production"
+SSH_USER="deploy"
+MAX_JOBS=16
+SSH_TIMEOUT=10
+UI_LANG="en"
+DRY_RUN=false
+
+# Scan output
+SCAN_OUTPUT_JSON=true
+SCAN_OUTPUT_DIR="$HOME/palpatine_scans"
+SCAN_REPORT=true
+SCAN_INTERACTIVE_RETRY=true
+
+# Auto-update
+DISABLE_UPDATE_CHECK=false
+UPDATE_CHECK_INTERVAL=86400
+UPDATE_REMOTE=origin
+UPDATE_BRANCH=main</code></pre>
+
+                <h3 class="subsection-title">Configuration Variables</h3>
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>GROUP</code></td>
+                            <td>Default server group (uses servers-GROUP.txt)</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><code>SSH_USER</code></td>
+                            <td>Default SSH username for bare hostnames</td>
+                            <td>root</td>
+                        </tr>
+                        <tr>
+                            <td><code>MAX_JOBS</code></td>
+                            <td>Maximum parallel SSH jobs</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td><code>SSH_TIMEOUT</code></td>
+                            <td>SSH ConnectTimeout in seconds</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td><code>UI_LANG</code></td>
+                            <td>Interface language (en, fr, de, es, pt, it, ru, uk, pl, ja, ko, zh)</td>
+                            <td>en</td>
+                        </tr>
+                        <tr>
+                            <td><code>DRY_RUN</code></td>
+                            <td>Simulate actions without execution</td>
+                            <td>false</td>
+                        </tr>
+                        <tr>
+                            <td><code>SCAN_OUTPUT_JSON</code></td>
+                            <td>Enable JSON scan output</td>
+                            <td>false</td>
+                        </tr>
+                        <tr>
+                            <td><code>SCAN_REPORT</code></td>
+                            <td>Enable Markdown scan reports</td>
+                            <td>false</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 class="subsection-title">Supported Languages</h3>
+                <div class="languages">
+                    <span class="lang-badge">English</span>
+                    <span class="lang-badge">Français</span>
+                    <span class="lang-badge">Deutsch</span>
+                    <span class="lang-badge">Español</span>
+                    <span class="lang-badge">Português</span>
+                    <span class="lang-badge">Italiano</span>
+                    <span class="lang-badge">Русский</span>
+                    <span class="lang-badge">Українська</span>
+                    <span class="lang-badge">Polski</span>
+                    <span class="lang-badge">日本語</span>
+                    <span class="lang-badge">한국어</span>
+                    <span class="lang-badge">中文</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="contributing" class="section section-dark">
+            <div class="container">
+                <h2 class="section-title">Contributing</h2>
+                <p class="section-intro">Palpatine is open-source and welcomes contributions. Keep it simple, auditable, and Bash-native.</p>
+
+                <div class="contribute-grid">
+                    <div class="contribute-card">
+                        <h3>🔧 Suggested Improvements</h3>
+                        <ul>
+                            <li>Additional built-in plugins (remediation, observability)</li>
+                            <li>Alternate output formats (CSV, JSONL, Prometheus)</li>
+                            <li>Enhanced visual themes (light mode, high contrast)</li>
+                            <li>fzf or dialog integration for richer UI</li>
+                        </ul>
+                    </div>
+
+                    <div class="contribute-card">
+                        <h3>🧪 Testing</h3>
+                        <p>Run automated tests:</p>
+                        <pre><code>./tests/run.sh</code></pre>
+                        <p>Syntax validation:</p>
+                        <pre><code>bash -n lib/*.sh lib/plugins/*.sh
+shellcheck lib/*.sh lib/plugins/*.sh</code></pre>
+                    </div>
+
+                    <div class="contribute-card">
+                        <h3>📝 Development Workflow</h3>
+                        <ol>
+                            <li>Fork the repository</li>
+                            <li>Create feature branch</li>
+                            <li>Write clear commit messages</li>
+                            <li>Add tests or manual test steps</li>
+                            <li>Open PR with explanation</li>
+                        </ol>
+                    </div>
+
+                    <div class="contribute-card">
+                        <h3>🔒 Security Best Practices</h3>
+                        <ul>
+                            <li>Use SSH key authentication (ed25519/RSA)</li>
+                            <li>Test with <code>DRY_RUN=true</code> first</li>
+                            <li>Keep ~/.ssh permissions strict (700/600)</li>
+                            <li>Avoid running as root on workstation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>PALPATINE</h4>
+                    <p>Galactic Server Control</p>
+                    <p class="footer-license">GNU General Public License v3.0</p>
+                    <p class="footer-author">Created by tashikomaaa (corvus)</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/tashikomaaa/palpatine">GitHub Repository</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine/issues">Report Issues</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine/blob/main/README.md">README</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine/blob/main/REVIEW.md">Code Review</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="https://github.com/tashikomaaa/palpatine#quick-start">Quick Start</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine#configuration">Configuration Guide</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine#troubleshooting-common-issues">Troubleshooting</a></li>
+                        <li><a href="https://github.com/tashikomaaa/palpatine#testing">Testing Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Palpatine Contributors. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>
