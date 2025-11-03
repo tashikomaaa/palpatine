@@ -1,0 +1,31 @@
+================================================================================
+     .-|~|-.        PALPATINE v1 - Imperial Fleet Control System
+  .-[=======]-.     "Long Live The Empire"
+     '-|~|-'
+================================================================================
+
+ Context: prod   User: root   Targets: 8   Timeout: 5s
+--------------------------------------------------------------------------------
+
+ IMPERIAL FLEET ROSTER
+--------------------------------------------------------------------------------
+ ID   | TARGET                                  | STATUS     | TAGS
+--------------------------------------------------------------------------------
+ 1    | root@web-01.galaxy.net                  | ONLINE     | web,prod,frontend
+ 2    | root@web-02.galaxy.net:2222             | ONLINE     | web,prod,frontend
+ 3    | admin@api-01.galaxy.net                 | ONLINE     | api,prod,backend
+ 4    | admin@api-02.galaxy.net:2222            | ONLINE     | api,prod,backend
+ 5    | postgres@db-01.galaxy.net               | ONLINE     | database,prod
+ 6    | postgres@db-02.galaxy.net:5432          | ONLINE     | database,prod
+ 7    | deploy@staging-01.galaxy.net            | ONLINE     | dev,staging
+ 8    | deploy@staging-02.galaxy.net:2222       | ONLINE     | dev,staging
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+ <1> Scan Fleet | <2> Run Command | <3> Reboot | <4> Shutdown | <5> Focus | <6> Plugins | <q> Quit
+--------------------------------------------------------------------------------
+
+ Additional commands:
+ <7> Plugins  <8> Add Server  <9> Remove Server
+
+[COMMAND]> _

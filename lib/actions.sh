@@ -112,18 +112,21 @@ action_status(){
         local ssh_stat="not_attempted"
         local ssh_output=""
         local ssh_exit='null'
-        
-        # Ping
+
+        # Ping with spinner
+        printf "   ${COL_INFO}[SCANNING]${COL_RESET} Pinging... "
         if ping_host "$hostpart"; then
             ping_stat="ok"
-            echo "   $(L 'status.ping_ok' 2>/dev/null || echo 'Ping: OK')"
-            # Non-interactive SSH attempt for uptime
+            printf "\r   $(L 'status.ping_ok' 2>/dev/null || echo 'Ping: OK')                    \n"
+            # Non-interactive SSH attempt for uptime with spinner
+            printf "   ${COL_INFO}[SCANNING]${COL_RESET} Connecting via SSH... "
             ssh_exit=0
             local ssh_opts_scan=("${SSH_OPTS[@]}")
             build_ssh_opts "$s" ssh_opts_scan
             local ssh_host_clean
             ssh_host_clean="$(get_host_without_port "$(host_for "$s")")"
             ssh_output="$(ssh "${ssh_opts_scan[@]}" "$ssh_host_clean" -- "uptime -p" 2>&1)" || ssh_exit=$?
+            printf "\r%80s\r" ""  # Clear line
 
             if (( ssh_exit == 0 )); then
                 ssh_stat="ok"
@@ -159,7 +162,7 @@ action_status(){
             fi
         else
             ping_stat="failed"
-            echo "   $(L 'status.ping_fail' 2>/dev/null || echo 'Ping failed for') $s"
+            printf "\r   ${COL_ERR}[FAILED]${COL_RESET} $(L 'status.ping_fail' 2>/dev/null || echo 'Ping failed for') $s                    \n"
             ssh_stat="skipped"
         fi
         

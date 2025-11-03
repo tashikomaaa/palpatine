@@ -301,6 +301,16 @@ fi
 # ----------------------------
 # Bootstrap UI and load servers
 # ----------------------------
+
+# Show animated intro only in interactive mode
+if [[ -z "${ACTION:-}" && -z "${PLAYBOOK:-}" && -z "${FOCUS:-}" && -t 0 ]]; then
+  # Add intro animation flag to avoid showing it multiple times
+  if [[ "${SHOW_INTRO:-true}" == "true" ]]; then
+    animate_intro
+    export SHOW_INTRO=false
+  fi
+fi
+
 draw_header
 load_servers
 
@@ -392,22 +402,55 @@ while :; do
   choice_prompt=$'\e[36m'"[COMMAND]> "
   read -rp "${choice_prompt}${COL_RESET}" choice
   choice="${choice,,}"
+
+  # Screen transition before action
+  [[ "$choice" =~ ^[1-5]$ ]] && screen_wipe
+
   case "$choice" in
-    1|"s") action_status; pause ;;
-    2) action_run_command; pause ;;
-    3|"r") action_reboot_or_shutdown "reboot"; pause ;;
-    4) action_reboot_or_shutdown "shutdown"; pause ;;
-    5) select_server ;;
+    1|"s")
+      action_status
+      flash_screen "$COL_OK" 1
+      pause
+      ;;
+    2)
+      action_run_command
+      pause
+      ;;
+    3|"r")
+      action_reboot_or_shutdown "reboot"
+      pause
+      ;;
+    4)
+      action_reboot_or_shutdown "shutdown"
+      pause
+      ;;
+    5)
+      select_server
+      ;;
     "$option_plugin"|"p")
       if (( option_plugin > 0 )) && plugins_available; then
+        screen_wipe
         show_plugin_menu
       else
         alert "$(L 'plugins.none')"
       fi
       ;;
-    "$option_add"|"a") prompt_add_server; pause ;;
-    "$option_remove"|"d") prompt_remove_server; pause ;;
-    9|"q") victory "$(L 'victory.farewell')"; exit 0 ;;
-    *) alert "$(L 'alert.invalid')" ;;
+    "$option_add"|"a")
+      prompt_add_server
+      pause
+      ;;
+    "$option_remove"|"d")
+      prompt_remove_server
+      pause
+      ;;
+    9|"q")
+      flash_screen "$COL_INFO" 1
+      victory "$(L 'victory.farewell')"
+      exit 0
+      ;;
+    *)
+      alert "$(L 'alert.invalid')"
+      sleep 0.5
+      ;;
   esac
 done

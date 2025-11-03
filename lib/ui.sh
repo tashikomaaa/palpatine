@@ -963,6 +963,173 @@ draw_server_table(){
   echo ""
 }
 
+# ----------------------------
+# ANIMATIONS (Normal speed: 150-200ms)
+# ----------------------------
+
+# Animation speed control
+ANIM_SPEED="${ANIM_SPEED:-0.15}"  # 150ms default
+
+# Spinner frames (classic ASCII)
+SPINNER_FRAMES=('|' '/' '-' '\')
+
+# Progress bar animation
+animate_progress_bar(){
+  local duration="${1:-3}"
+  local width=40
+  local steps=20
+  # Use awk instead of bc for portability
+  local delay
+  delay=$(awk "BEGIN {print $duration / $steps}")
+
+  for ((i=0; i<=steps; i++)); do
+    local filled=$((i * width / steps))
+    local empty=$((width - filled))
+    printf "\r ${COL_INFO}[IMPERIAL]${COL_RESET} ["
+    printf "%${filled}s" | tr ' ' '='
+    printf "%${empty}s" | tr ' ' ' '
+    printf "] %3d%%" $((i * 100 / steps))
+    sleep "$delay" 2>/dev/null || sleep 0.15
+  done
+  echo ""
+}
+
+# Spinner animation (runs in background)
+show_spinner(){
+  local pid=$1
+  local message="${2:-Processing}"
+  local i=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    printf "\r ${COL_INFO}[IMPERIAL]${COL_RESET} %s %s" "$message" "${SPINNER_FRAMES[$i]}"
+    i=$(( (i + 1) % 4 ))
+    sleep "$ANIM_SPEED"
+  done
+  printf "\r%*s\r" 80 ""  # Clear line
+}
+
+# Typing effect for text
+animate_text(){
+  local text="$1"
+  local speed="${2:-0.05}"
+  local len=${#text}
+
+  for ((i=0; i<len; i++)); do
+    printf "%s" "${text:$i:1}"
+    sleep "$speed"
+  done
+  echo ""
+}
+
+# Screen wipe transition (top to bottom)
+screen_wipe(){
+  local width
+  width=$(get_term_width)
+
+  for ((i=0; i<5; i++)); do
+    printf "%b%${width}s%b\n" "$COL_FRAME" "" "$COL_RESET" | tr ' ' '='
+    sleep 0.05
+  done
+}
+
+# Flash effect (success/error)
+flash_screen(){
+  local color="${1:-$COL_OK}"
+  local times="${2:-2}"
+
+  for ((i=0; i<times; i++)); do
+    printf "%b" "$color"
+    clear
+    sleep 0.1
+    printf "%b" "$COL_RESET"
+    clear
+    sleep 0.1
+  done
+}
+
+# Matrix rain effect with Aurebesh-style characters
+matrix_rain_background(){
+  local duration="${1:-5}"
+  local width
+  width=$(get_term_width)
+
+  # Aurebesh-inspired ASCII characters
+  local chars=('*' '+' 'X' 'O' '#' '@' '%' '&' '$')
+
+  for ((frame=0; frame<duration*2; frame++)); do
+    for ((col=0; col<width; col+=4)); do
+      if (( RANDOM % 3 == 0 )); then
+        local char_idx=$((RANDOM % ${#chars[@]}))
+        local row=$((RANDOM % 3))
+        printf "\033[%d;%dH%b%s%b" "$row" "$col" "$COL_INFO" "${chars[$char_idx]}" "$COL_RESET"
+      fi
+    done
+    sleep 0.5
+  done
+}
+
+# Animated TIE Fighter intro sequence
+animate_intro(){
+  clear
+  local width
+  width=$(get_term_width)
+
+  # Frame 1: Far away
+  sleep 0.3
+  clear
+  echo ""
+  echo ""
+  printf "%b" "$COL_HEADER"
+  echo "                                    .-|~|-."
+  echo "                                 .-[=======]-."
+  echo "                                    '-|~|-'"
+  printf "%b" "$COL_RESET"
+  sleep 0.3
+
+  # Frame 2: Coming closer
+  clear
+  echo ""
+  printf "%b" "$COL_HEADER"
+  echo "                          .-|~|-."
+  echo "                       .-[=======]-."
+  echo "                          '-|~|-'"
+  printf "%b" "$COL_RESET"
+  sleep 0.3
+
+  # Frame 3: Final position
+  clear
+  echo ""
+  printf "%b" "$COL_HEADER"
+  echo "              .-|~|-."
+  echo "           .-[=======]-."
+  echo "              '-|~|-'"
+  printf "%b" "$COL_RESET"
+  sleep 0.3
+
+  # Type out text
+  echo ""
+  printf "%b" "$COL_HEADER"
+  animate_text "     IMPERIAL FLEET COMMAND SYSTEM" 0.03
+  animate_text "     PALPATINE v${VERSION}" 0.03
+  printf "%b" "$COL_RESET"
+  sleep 0.5
+
+  # Flash "Initializing"
+  printf "\n%b" "$COL_INFO"
+  animate_text "     >> Initializing systems..." 0.05
+  printf "%b" "$COL_RESET"
+
+  # Progress bar
+  echo ""
+  animate_progress_bar 2
+
+  echo ""
+  printf "%b" "$COL_OK"
+  echo "     [OK] Systems online. Long live the Empire."
+  printf "%b" "$COL_RESET"
+  sleep 1
+}
+
 # Branded logging wrappers (Star Wars Imperial style)
 empire(){ echo -e "${COL_INFO}[IMPERIAL]${COL_RESET} $*"; }
 victory(){ echo -e "${COL_OK}[OK]${COL_RESET} $*"; }
