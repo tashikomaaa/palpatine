@@ -47,6 +47,7 @@ COL_FRAME=$'\e[0;37m'        # white
 COL_MUTED=$'\e[0;90m'        # dark gray
 
 # Localization overrides for additional languages
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_RU=(
   [tagline]="Галактическое управление серверами"
   [quote]="«Пусть SSH течёт в вас.»"
@@ -100,6 +101,7 @@ declare -A L_RU=(
   [victory.farewell]="Империя салютует вам."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_DE=(
   [tagline]="Galaktische Serververwaltung"
   [quote]="\"Gut ... lass den SSH durch dich fließen.\""
@@ -153,6 +155,7 @@ declare -A L_DE=(
   [victory.farewell]="Das Imperium salutiert."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_ES=(
   [tagline]="Control Galáctico de Servidores"
   [quote]="\"Bien... deja que el SSH fluya a través de ti.\""
@@ -206,6 +209,7 @@ declare -A L_ES=(
   [victory.farewell]="El Imperio te saluda."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_PT=(
   [tagline]="Controle Galáctico de Servidores"
   [quote]="\"Muito bem... deixe o SSH fluir através de você.\""
@@ -259,6 +263,7 @@ declare -A L_PT=(
   [victory.farewell]="O Império saúda você."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_IT=(
   [tagline]="Controllo Galattico dei Server"
   [quote]="\"Bene... lascia che l'SSH scorra dentro di te.\""
@@ -312,6 +317,7 @@ declare -A L_IT=(
   [victory.farewell]="L'Impero ti saluta."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_JA=(
   [tagline]="銀河サーバーコントロール"
   [quote]="「いいだろう…SSH に身を委ねなさい。」"
@@ -365,9 +371,10 @@ declare -A L_JA=(
   [victory.farewell]="帝国はあなたに敬礼する。"
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_ZH=(
   [tagline]="银河服务器控制"
-  [quote]="“很好……让 SSH 在你体内流淌。”"
+  [quote]="\"很好……让 SSH 在你体内流淌。\""
   [cfg_active]="当前配置:"
   [cfg_group]="分组"
   [cfg_user]="用户"
@@ -418,6 +425,7 @@ declare -A L_ZH=(
   [victory.farewell]="帝国向你致敬。"
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_KO=(
   [tagline]="은하 서버 제어"
   [quote]="\"좋아... SSH의 힘을 느껴라.\""
@@ -471,6 +479,7 @@ declare -A L_KO=(
   [victory.farewell]="제국이 당신에게 경의를 표합니다."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_UK=(
   [tagline]="Галактичне керування серверами"
   [quote]="«Добре... нехай SSH тече крізь вас.»"
@@ -524,6 +533,7 @@ declare -A L_UK=(
   [victory.farewell]="Імперія вітає вас."
 )
 
+# shellcheck disable=SC2034  # Used dynamically by L() function
 declare -A L_PL=(
   [tagline]="Galaktyczne zarządzanie serwerami"
   [quote]="\"Dobrze... niech SSH przepływa przez ciebie.\""

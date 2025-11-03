@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # backup.sh — plugin de sauvegarde impériale
 
 plugin_backup_menu(){

@@ -243,10 +243,13 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    # shellcheck disable=SC2034  # Used by sourced lib scripts
     --group) GROUP="$2"; shift ;;
+    # shellcheck disable=SC2034  # Used by sourced lib scripts
     --user) SSH_USER="$2"; shift ;;
     --action) ACTION="$2"; shift ;;
     --cmd) CMDLINE="$2"; shift ;;
+    # shellcheck disable=SC2034  # Used by sourced lib scripts
     --dry-run) DRY_RUN=true ;;
     --focus) FOCUS="$2"; shift ;;
     --add-server) ADD_SERVER="$2"; shift ;;

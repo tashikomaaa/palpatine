@@ -34,7 +34,7 @@ declare -A SERVER_TAGS  # Associative array: server -> comma-separated tags
 # SSH options: non-interactive first (BatchMode=yes)
 SSH_OPTS=( -o BatchMode=yes -o ConnectTimeout="$SSH_TIMEOUT" -o StrictHostKeyChecking=ask )
 # SSH options for interactive attempts (allow password prompt)
-SSH_OPTS_INTERACTIVE=( -o BatchMode=no -o PreferredAuthentications=publickey,password -o ConnectTimeout="$SSH_TIMEOUT" -o StrictHostKeyChecking=ask )
+SSH_OPTS_INTERACTIVE=( -o BatchMode=no -o "PreferredAuthentications=publickey,password" -o ConnectTimeout="$SSH_TIMEOUT" -o StrictHostKeyChecking=ask )
 
 # ----------------------------
 # Small UI/log helpers (rely on ui.sh for L and colors)
